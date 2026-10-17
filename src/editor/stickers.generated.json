@@ -70,5 +70,77 @@
     "src": "/stickers/s01-pujor-jinish-9.webp",
     "w": 327,
     "h": 213
+  },
+  {
+    "id": "s02-phul-pata-1",
+    "name": "জবা ফুল",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-1.webp",
+    "w": 257,
+    "h": 293
+  },
+  {
+    "id": "s02-phul-pata-2",
+    "name": "পদ্ম ফুল",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-2.webp",
+    "w": 282,
+    "h": 237
+  },
+  {
+    "id": "s02-phul-pata-3",
+    "name": "শিউলি ফুল",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-3.webp",
+    "w": 246,
+    "h": 258
+  },
+  {
+    "id": "s02-phul-pata-4",
+    "name": "গাঁদা ফুল",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-4.webp",
+    "w": 295,
+    "h": 299
+  },
+  {
+    "id": "s02-phul-pata-5",
+    "name": "কাশ ফুল",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-5.webp",
+    "w": 219,
+    "h": 339
+  },
+  {
+    "id": "s02-phul-pata-6",
+    "name": "বেল পাতা",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-6.webp",
+    "w": 274,
+    "h": 275
+  },
+  {
+    "id": "s02-phul-pata-7",
+    "name": "আম পাতা",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-7.webp",
+    "w": 348,
+    "h": 200
+  },
+  {
+    "id": "s02-phul-pata-8",
+    "name": "পান পাতা",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-8.webp",
+    "w": 212,
+    "h": 252
+  },
+  {
+    "id": "s02-phul-pata-9",
+    "name": "রজনীগন্ধা",
+    "group": "ফুল-পাতা",
+    "src": "/stickers/s02-phul-pata-9.webp",
+    "w": 245,
+    "h": 324
   }
 ]
