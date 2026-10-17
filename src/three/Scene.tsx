@@ -133,9 +133,9 @@ export function Scene() {
         camera={{ position: [0, 0.3, 10], fov: 38 }}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       >
-        <fog attach="fog" args={["#160806", 9, 19]} />
+        <fog attach="fog" args={["#14091c", 9, 19]} />
         <ambientLight intensity={0.35} color="#ffd9b0" />
-        <hemisphereLight args={["#ffcf9a", "#2a0a06", 0.5]} />
+        <hemisphereLight args={["#ffcf9a", "#26102e", 0.5]} />
         <Stage />
         <Embers count={small ? 70 : 150} />
       </Canvas>

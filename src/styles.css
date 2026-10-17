@@ -1,20 +1,30 @@
+/* Night (hero, photo check, results, studio): plum sky, marigold, sindoor. */
 :root {
-  --bg: #0b0605;
-  --section: #0b0605;
-  --section-2: #120807;
-  --bg-2: #22100a;
-  --panel: rgba(36, 16, 10, 0.72);
-  --panel-solid: #24110b;
-  --ink: #fbeedb;
-  --muted: #cfb49a;
-  --dim: #9c806a;
-  --gold: #f2c46d;
-  --gold-2: #d9a441;
-  --red: #b3151d;
-  --red-deep: #6a0d12;
-  --cream: #f5ecda;
-  --line: rgba(242, 196, 109, 0.22);
-  --line-strong: rgba(242, 196, 109, 0.45);
+  --bg: #12081a;
+  --section: #12081a;
+  --section-2: #1b0e26;
+  --bg-2: #2a1236;
+  --panel: rgba(30, 14, 40, 0.94);
+  --panel-solid: #22112e;
+  --ink: #fff3e2;
+  --muted: #dcc6b4;
+  --dim: #a8909f;
+  --gold: #ffb52e;
+  --gold-2: #f28c18;
+  --red: #e1262c;
+  --red-deep: #8e0f1e;
+  --cream: #fff3e2;
+  --line: rgba(255, 181, 46, 0.2);
+  --line-strong: rgba(255, 181, 46, 0.45);
+  /* Day: the paper and sindoor sections under the hero. */
+  --paper: #fff7ea;
+  --paper-2: #fbead0;
+  --kajal: #2b0b12;
+  --kajal-2: #6f4a4c;
+  --sindoor: #c8151d;
+  --sindoor-deep: #9e0e18;
+  --marigold: #f5a01a;
+  --leaf: #1d6b4c;
   --radius: 18px;
   --radius-sm: 12px;
   --gutter: clamp(16px, 4vw, 48px);
@@ -62,8 +72,8 @@ img {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 55% at 70% 45%, rgba(255, 140, 50, 0.16), transparent 70%),
-    radial-gradient(ellipse 90% 70% at 50% 110%, rgba(140, 20, 20, 0.35), transparent 70%),
+    radial-gradient(ellipse 70% 55% at 70% 45%, rgba(255, 150, 50, 0.18), transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 110%, rgba(170, 20, 50, 0.32), transparent 70%),
     var(--bg);
 }
 
@@ -81,7 +91,7 @@ img {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(8, 3, 2, 0.75) 100%);
+  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(10, 4, 16, 0.75) 100%);
 }
 
 .app {
@@ -129,7 +139,7 @@ img {
   color: var(--gold);
   font-size: 14px;
   font-weight: 600;
-  background: rgba(242, 196, 109, 0.08);
+  background: rgba(255, 181, 46, 0.08);
   backdrop-filter: blur(6px);
 }
 
@@ -156,11 +166,17 @@ img {
 }
 
 .btn-primary {
-  color: #2a0c05;
-  background: linear-gradient(180deg, #ffd88a, #e9a943);
+  color: var(--kajal);
+  background: var(--gold);
   box-shadow:
-    0 10px 30px rgba(233, 169, 67, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 4px 0 #c26a06,
+    0 14px 30px rgba(255, 150, 30, 0.32);
+}
+
+.btn-primary:active {
+  box-shadow:
+    0 1px 0 #c26a06,
+    0 8px 20px rgba(255, 150, 30, 0.28);
 }
 
 .btn-ghost {
@@ -350,7 +366,7 @@ img {
   position: relative;
   padding: 28px 26px 30px;
   border-radius: var(--radius);
-  background: linear-gradient(160deg, rgba(60, 24, 14, 0.9), rgba(28, 11, 7, 0.92));
+  background: linear-gradient(160deg, rgba(52, 22, 62, 0.9), rgba(26, 11, 34, 0.92));
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   transform-style: preserve-3d;
@@ -402,7 +418,7 @@ img {
 .sample-card {
   border-radius: 22px;
   padding: 30px 24px 26px;
-  background: linear-gradient(180deg, #6a0d12, #3d070b 60%, #1f0405);
+  background: linear-gradient(180deg, #8e0f1e, #3d070b 60%, #1f0405);
   border: 1px solid var(--line-strong);
   box-shadow: var(--shadow);
   text-align: center;
@@ -502,7 +518,7 @@ img {
   z-index: 50;
   border: 2px dashed var(--gold);
   border-radius: 28px;
-  background: rgba(20, 8, 6, 0.75);
+  background: rgba(20, 8, 28, 0.75);
   backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
@@ -541,7 +557,7 @@ img {
   aspect-ratio: 9 / 16;
   object-fit: cover;
   border-radius: 10px;
-  background: #2a150d;
+  background: #2a1636;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
 }
 
@@ -793,7 +809,7 @@ img {
 
 .pill[aria-pressed="true"] {
   background: var(--gold);
-  color: #2a0c05;
+  color: #2b0b12;
   border-color: var(--gold);
 }
 
@@ -836,7 +852,7 @@ img {
   aspect-ratio: 4 / 5;
   border-radius: 10px;
   overflow: hidden;
-  background: #2b140d;
+  background: #2a1636;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   position: relative;
 }
@@ -897,7 +913,7 @@ img {
   padding: 2px 10px;
   border-radius: 999px;
   background: var(--gold);
-  color: #2a0c05;
+  color: #2b0b12;
 }
 
 .actions {
@@ -994,7 +1010,7 @@ img {
   padding: 12px 20px;
   border-radius: 999px;
   background: var(--cream);
-  color: #2a0c05;
+  color: #2b0b12;
   font-weight: 600;
   box-shadow: var(--shadow);
 }
@@ -1005,7 +1021,7 @@ img {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(8, 3, 2, 0.6);
+  background: rgba(10, 4, 16, 0.6);
   backdrop-filter: blur(3px);
 }
 
@@ -1048,7 +1064,7 @@ img {
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  background: #2b140d;
+  background: #2a1636;
   aspect-ratio: 4 / 5;
 }
 
@@ -1065,7 +1081,7 @@ img {
   font-size: 12px;
   padding: 1px 8px;
   border-radius: 999px;
-  background: rgba(20, 8, 6, 0.8);
+  background: rgba(20, 8, 28, 0.8);
   color: var(--gold);
 }
 
@@ -1092,7 +1108,7 @@ img {
   }
 
   .hero-copy {
-    background: linear-gradient(180deg, transparent, rgba(11, 6, 5, 0.88) 18%);
+    background: linear-gradient(180deg, transparent, rgba(18, 8, 26, 0.9) 18%);
     margin: 0 calc(-1 * var(--gutter));
     padding: 40px var(--gutter) 0;
   }
