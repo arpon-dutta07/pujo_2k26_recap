@@ -92,3 +92,21 @@ export function alternativesFor(photos: Photo[], chosenIds: string[], id: string
   const others = free.filter((p) => !sameDay.includes(p)).sort((a, b) => b.score - a.score);
   return [...sameDay, ...others].slice(0, limit);
 }
+
+// Photos the visitor tapped during the photo check always make the cut, in
+// place of the weakest automatic picks. A tapped photo becomes the cover;
+// the rest stay in time order, as selectBest returns them.
+export function withPinned(photos: Photo[], picked: string[], pinned: ReadonlySet<string>, n: number): string[] {
+  const byId = new Map(photos.map((p) => [p.id, p]));
+  const pins = [...pinned].map((id) => byId.get(id)).filter((p): p is Photo => !!p && p.status !== "unreadable");
+  if (!pins.length) return picked;
+  const pinIds = new Set(pins.map((p) => p.id));
+  const auto = picked
+    .filter((id) => !pinIds.has(id))
+    .map((id) => byId.get(id)!)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(0, n - pins.length));
+  const all = [...pins, ...auto].sort((a, b) => time(a) - time(b) || a.index - b.index);
+  const cover = [...pins].sort((a, b) => b.score - a.score)[0];
+  return [cover.id, ...all.filter((p) => p !== cover).map((p) => p.id)];
+}

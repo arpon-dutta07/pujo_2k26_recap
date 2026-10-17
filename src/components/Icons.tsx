@@ -15,7 +15,7 @@ const base = {
 export const DiyaIcon = (p: P) => (
   <svg {...base} viewBox="0 0 32 32" {...p}>
     <path d="M5 17c0 5 5 8.5 11 8.5S27 22 27 17H5z" fill="#b8472a" stroke="none" />
-    <path d="M5 17h22" stroke="#f2c46d" strokeWidth={2} />
+    <path d="M5 17h22" stroke="#ffb52e" strokeWidth={2} />
     <path d="M16 4c3 4 4.2 6.3 4.2 8.4a4.2 4.2 0 0 1-8.4 0C11.8 10.3 13 8 16 4z" fill="#ffb347" stroke="none" />
     <path d="M16 8.5c1.4 2.2 2 3.4 2 4.4a2 2 0 0 1-4 0c0-1 .6-2.2 2-4.4z" fill="#fff2c4" stroke="none" />
   </svg>
@@ -224,5 +224,52 @@ export const EditIcon = (p: P) => (
   <svg {...base} {...p}>
     <path d="M4 20h4L19 9l-4-4L4 16z" />
     <path d="m13.5 6.5 4 4" />
+  </svg>
+);
+
+export const HeartIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z" />
+  </svg>
+);
+
+export const ShuffleIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M4 7h3.5c2 0 3 1 4.2 2.8l1.6 2.4C14.5 14 15.5 15 17.5 15H20" />
+    <path d="M4 15h3.5c1.2 0 2-.4 2.7-1.1M14.3 8.1C15 7.4 15.8 7 17 7h3" />
+    <path d="m17.5 4.5 2.5 2.5-2.5 2.5M17.5 12.5 20 15l-2.5 2.5" />
+  </svg>
+);
+
+export const ServerOffIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="4" y="4.5" width="16" height="6" rx="1.8" />
+    <rect x="4" y="13.5" width="16" height="6" rx="1.8" />
+    <path d="M7.5 7.5h.01M7.5 16.5h.01" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
+
+export const UserOffIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M5 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
+
+export const CloudOffIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M7 18.5h10a4 4 0 0 0 .6-7.9 5.5 5.5 0 0 0-10.6-1A4.5 4.5 0 0 0 7 18.5z" />
+    <path d="M12 15.5V11M9.8 13l2.2-2.2 2.2 2.2" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
+
+export const DragIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10" />
+    <path d="M12 9.5a1.5 1.5 0 0 1 3 0V11" />
+    <path d="M15 10.5a1.5 1.5 0 0 1 3 0v3.5a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.6-2.2L4.3 14.6a1.5 1.5 0 0 1 2.2-2L9 15" />
   </svg>
 );
