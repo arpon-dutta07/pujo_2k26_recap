@@ -1,0 +1,76 @@
+{
+  "cards": [
+    {
+      "src": "/hero/01.webp",
+      "label": "জয় মা দুর্গা"
+    },
+    {
+      "src": "/hero/02.webp",
+      "label": "গুয়াহাটি"
+    },
+    {
+      "src": "/hero/03.webp",
+      "label": "রাঁচি"
+    },
+    {
+      "src": "/hero/04.webp",
+      "label": "রাঁচি"
+    },
+    {
+      "src": "/hero/05.webp",
+      "label": "শিলিগুড়ি"
+    },
+    {
+      "src": "/hero/06.webp",
+      "label": "জয় মা দুর্গা"
+    },
+    {
+      "src": "/hero/07.webp",
+      "label": "গুয়াহাটি"
+    },
+    {
+      "src": "/hero/08.webp",
+      "label": "রাঁচি"
+    },
+    {
+      "src": "/hero/09.webp",
+      "label": "রাঁচি"
+    },
+    {
+      "src": "/hero/10.webp",
+      "label": "শিলিগুড়ি"
+    }
+  ],
+  "credits": [
+    {
+      "author": "Iitan",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "page": "https://commons.wikimedia.org/wiki/File:DurgaMata.jpg"
+    },
+    {
+      "author": "Nilotpal Hazarika123",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "page": "https://commons.wikimedia.org/wiki/File:Durga_Puja_2026_Maha_Sashti_Evening.jpg"
+    },
+    {
+      "author": "Flashthomsom",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "page": "https://commons.wikimedia.org/wiki/File:Durga_Puja_in_Ranchi,_Jharkhand.jpg"
+    },
+    {
+      "author": "Flashthomsom",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "page": "https://commons.wikimedia.org/wiki/File:Durga_Puja_in_Ranchi,_Jharkhand_03.jpg"
+    },
+    {
+      "author": "Sri Debapriya Hore",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "page": "https://commons.wikimedia.org/wiki/File:Durga_Puja_Pandal_in_Siliguri.jpg"
+    }
+  ]
+}

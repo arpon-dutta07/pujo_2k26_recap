@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { Headline } from "../components/Headline";
 import { CheckIcon, FlameArt, FrameArt, LockIcon, PhotosIcon, SieveArt } from "../components/Icons";
 import { TiltCard } from "../components/TiltCard";
@@ -7,12 +7,24 @@ import { LIMITS } from "../config";
 import { STICKERS } from "../editor/stickers";
 import { templatesFor } from "../editor/templates";
 import { bnNum } from "../lib/bn";
+import heroPhotos from "../three/hero.generated.json";
 
 const rise = {
   initial: { opacity: 0, y: 40 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-80px" },
 };
+
+// Who took the photos on the hero cards (npm run hero), one entry per
+// photographer with links to each of their photos, and the licences used.
+type Credit = { author: string; license: string; licenseUrl: string; page: string };
+const HERO_CREDITS = (heroPhotos as { credits: Credit[] }).credits;
+const PHOTOGRAPHERS = [...new Set(HERO_CREDITS.map((c) => c.author))].map((author) => ({
+  author,
+  pages: HERO_CREDITS.filter((c) => c.author === author).map((c) => c.page),
+}));
+const LICENCES = [...new Map(HERO_CREDITS.map((c) => [c.license, c.licenseUrl])).entries()];
+const FROM_COMMONS = HERO_CREDITS.some((c) => c.page.includes("commons.wikimedia.org"));
 
 const STEPS = [
   {
@@ -307,6 +319,44 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
       <footer className="footer">
         <span>পুজোর ঝুলি · শারদীয়া ২০২৬</span>
         <span>মুখ চেনে Google MediaPipe, চলে তোমার ফোনেই</span>
+        {PHOTOGRAPHERS.length > 0 && (
+          <p className="footer-credits">
+            {"প্রদীপ ঘিরে পুজো ২০২৬-এর ছবি: "}
+            {PHOTOGRAPHERS.map((p, i) => (
+              <Fragment key={p.author}>
+                {i > 0 && ", "}
+                <a href={p.pages[0]} target="_blank" rel="noreferrer">
+                  {p.author}
+                </a>
+                {p.pages.length > 1 && (
+                  <>
+                    {" ("}
+                    {p.pages.map((page, k) => (
+                      <Fragment key={page}>
+                        {k > 0 && ", "}
+                        <a href={page} target="_blank" rel="noreferrer">
+                          {bnNum(k + 1)}
+                        </a>
+                      </Fragment>
+                    ))}
+                    {")"}
+                  </>
+                )}
+              </Fragment>
+            ))}
+            {FROM_COMMONS && " · Wikimedia Commons"}
+            {" · "}
+            {LICENCES.map(([name, url], i) => (
+              <Fragment key={name}>
+                {i > 0 && " / "}
+                <a href={url} target="_blank" rel="noreferrer">
+                  {name}
+                </a>
+              </Fragment>
+            ))}
+            {" · কার্ডের মাপে কাটা"}
+          </p>
+        )}
       </footer>
     </>
   );

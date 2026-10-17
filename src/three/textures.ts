@@ -1,6 +1,7 @@
 // Polaroid-style card textures drawn on 2D canvases.
 import * as THREE from "three";
 import { FONT, alpona, coverRect, ensureFonts, seeded } from "../lib/render/draw";
+import heroPhotos from "./hero.generated.json";
 
 export const CARD_W = 256;
 export const CARD_H = 300;
@@ -47,9 +48,36 @@ const HUES = [
   ["#4a0b0b", "#f2a33a"],
 ];
 
-// Placeholder cards for the landing page, before any real photo exists.
+// Real Pujo photos for the landing cards (npm run hero). With none yet,
+// the cards fall back to the painted alpona placeholders below.
+const HERO = (heroPhotos as { cards: Array<{ src: string; label: string | null }> }).cards;
+const heroImages = new Map<string, Promise<HTMLImageElement>>();
+
+// Every paint takes a ticket, so a hero photo that finishes loading late
+// never covers a photo painted on the same card in the meantime.
+const tickets = new WeakMap<CardSurface, number>();
+const take = (s: CardSurface) => {
+  const n = (tickets.get(s) ?? 0) + 1;
+  tickets.set(s, n);
+  return n;
+};
+
+// Landing-page cards: a real photo when there is one, otherwise a placeholder.
 export async function paintPlaceholder(s: CardSurface, i: number) {
+  const ticket = take(s);
   await ensureFonts();
+  if (HERO.length) {
+    const h = HERO[i % HERO.length];
+    if (!heroImages.has(h.src)) heroImages.set(h.src, loadImage(h.src));
+    try {
+      const img = await heroImages.get(h.src)!;
+      if (tickets.get(s) === ticket) drawPhoto(s, img, h.label);
+      return;
+    } catch {
+      // fall through to the painted card
+    }
+  }
+  if (tickets.get(s) !== ticket) return;
   const rnd = seeded(i * 97 + 13);
   const [a, b] = HUES[i % HUES.length];
   const { ctx } = s;
@@ -77,7 +105,14 @@ export async function paintPlaceholder(s: CardSurface, i: number) {
   s.texture.needsUpdate = true;
 }
 
-export function paintPhoto(s: CardSurface, src: CanvasImageSource & { width: number; height: number }, label: string | null) {
+type Picture = CanvasImageSource & { width: number; height: number };
+
+export function paintPhoto(s: CardSurface, src: Picture, label: string | null) {
+  take(s);
+  drawPhoto(s, src, label);
+}
+
+function drawPhoto(s: CardSurface, src: Picture, label: string | null) {
   const { ctx } = s;
   frame(ctx);
   const w = CARD_W - PAD * 2;
