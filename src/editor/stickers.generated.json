@@ -502,5 +502,77 @@
     "src": "/stickers/s18-lekha-6.webp",
     "w": 486,
     "h": 346
+  },
+  {
+    "id": "s04-shajgoj-1",
+    "name": "ঝুমকো",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-1.webp",
+    "w": 273,
+    "h": 233
+  },
+  {
+    "id": "s04-shajgoj-2",
+    "name": "শাঁখা-পলা",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-2.webp",
+    "w": 254,
+    "h": 198
+  },
+  {
+    "id": "s04-shajgoj-3",
+    "name": "নথ",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-3.webp",
+    "w": 283,
+    "h": 233
+  },
+  {
+    "id": "s04-shajgoj-4",
+    "name": "টিপ ও সিঁদুর",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-4.webp",
+    "w": 228,
+    "h": 191
+  },
+  {
+    "id": "s04-shajgoj-5",
+    "name": "আলতা",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-5.webp",
+    "w": 182,
+    "h": 244
+  },
+  {
+    "id": "s04-shajgoj-6",
+    "name": "মেহেন্দি হাত",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-6.webp",
+    "w": 262,
+    "h": 292
+  },
+  {
+    "id": "s04-shajgoj-7",
+    "name": "লাল পাড় শাড়ি",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-7.webp",
+    "w": 282,
+    "h": 304
+  },
+  {
+    "id": "s04-shajgoj-8",
+    "name": "জুতো",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-8.webp",
+    "w": 333,
+    "h": 257
+  },
+  {
+    "id": "s04-shajgoj-9",
+    "name": "হাত আয়না",
+    "group": "সাজগোজ",
+    "src": "/stickers/s04-shajgoj-9.webp",
+    "w": 195,
+    "h": 294
   }
 ]
