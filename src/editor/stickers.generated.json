@@ -406,5 +406,53 @@
     "src": "/stickers/s16-bonedi-bari-6.webp",
     "w": 219,
     "h": 416
+  },
+  {
+    "id": "s17-nakshha-1",
+    "name": "আলপনা",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-1.webp",
+    "w": 290,
+    "h": 290
+  },
+  {
+    "id": "s17-nakshha-2",
+    "name": "কলকা",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-2.webp",
+    "w": 198,
+    "h": 293
+  },
+  {
+    "id": "s17-nakshha-3",
+    "name": "জোড়া মাছ",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-3.webp",
+    "w": 267,
+    "h": 291
+  },
+  {
+    "id": "s17-nakshha-4",
+    "name": "পটের সূর্য",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-4.webp",
+    "w": 276,
+    "h": 257
+  },
+  {
+    "id": "s17-nakshha-5",
+    "name": "কোণের নকশা",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-5.webp",
+    "w": 228,
+    "h": 286
+  },
+  {
+    "id": "s17-nakshha-6",
+    "name": "পাড়ের নকশা",
+    "group": "নকশা",
+    "src": "/stickers/s17-nakshha-6.webp",
+    "w": 508,
+    "h": 199
   }
 ]
