@@ -1,9 +1,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CheckIcon, CopyIcon, DownloadIcon, EditIcon, RestartIcon, ShareIcon } from "../components/Icons";
-import { TiltCard } from "../components/TiltCard";
-import { EXPORT, LIMITS } from "../config";
+import { CheckIcon, CopyIcon, EditIcon, PlayIcon, RestartIcon, ShareIcon } from "../components/Icons";
+import { LIMITS } from "../config";
 import { ExportSheet } from "../editor/ExportSheet";
 import { PageView } from "../editor/PageView";
 import { clearPhotoPreviews } from "../editor/photos";
@@ -14,15 +13,16 @@ import { defaultFormat, templateById } from "../editor/templates";
 import { bnNum } from "../lib/bn";
 import { captionIdeas } from "../lib/captions";
 import { DAY_ORDER } from "../lib/days";
-import { toJpeg } from "../lib/render/draw";
-import { renderStory } from "../lib/render/story";
-import { canShareFiles, downloadBlob, shareFiles } from "../lib/share";
-import { roastLines, type PujoStats } from "../lib/stats";
+import type { PujoStats } from "../lib/stats";
 import type { Photo } from "../lib/types";
+import { recapFacts } from "../recap/facts";
+import { RecapPlayer } from "../recap/Player";
+import { SlideView } from "../recap/SlideView";
+import { buildRecap } from "../recap/slides";
+import { SLIDE_W, type Slide } from "../recap/types";
 import { sceneLive } from "../three/store";
 
 type Tab = "templates" | "story" | "captions";
-type Rendered = { url: string; blob: Blob };
 
 export function Results(props: {
   photos: Photo[];
@@ -38,7 +38,8 @@ export function Results(props: {
 
   const [tab, setTab] = useState<Tab>("templates");
   const [toast, setToast] = useState<string | null>(null);
-  const [story, setStory] = useState<Rendered | null>(null);
+  // The recap story: which slide it is open on, or null when closed.
+  const [recap, setRecap] = useState<number | null>(null);
   const [extras, setExtras] = useState<Photo[]>([]);
   const [studio, setStudio] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -93,35 +94,14 @@ export function Results(props: {
     [],
   );
 
-  const lines = useMemo(() => roastLines(stats), [stats]);
-  const heroes = useMemo(() => [...chosen].sort((a, b) => b.score - a.score).slice(0, 3), [chosen]);
+  const slides = useMemo(() => buildRecap(recapFacts(photos, selected, stats)), [photos, selected, stats]);
+  // Plays once by itself when the results arrive, like a year-end recap.
   useEffect(() => {
-    let alive = true;
-    void (async () => {
-      const canvas = await renderStory(stats, lines, heroes);
-      const blob = await toJpeg(canvas, EXPORT.jpegQuality);
-      if (!alive) return;
-      setStory((old) => {
-        if (old) URL.revokeObjectURL(old.url);
-        return { blob, url: URL.createObjectURL(blob) };
-      });
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [stats, lines, heroes]);
+    const id = window.setTimeout(() => setRecap(0), 1600);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const captions = useMemo(() => captionIdeas(stats, chosen.length), [stats, chosen.length]);
-
-  const shareStory = async () => {
-    if (!story) return;
-    const file = [{ name: "pujor-hisheb.jpg", blob: story.blob }];
-    if (canShareFiles(file)) {
-      const r = await shareFiles(file);
-      if (r !== "failed") return;
-    }
-    downloadBlob(story.blob, "pujor-hisheb.jpg");
-  };
 
   const copy = async (text: string) => {
     try {
@@ -144,6 +124,19 @@ export function Results(props: {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
+        <button className="recap-banner" onClick={() => setRecap(0)}>
+          <span className="recap-banner-art" aria-hidden="true">
+            <Thumb slide={slides[0]} />
+          </span>
+          <span>
+            <b>তোমার পুজোর হিসেব তৈরি</b>
+            <small>{bnNum(slides.length)}টা স্লাইড। দেখো, তারপর story-তে দাও।</small>
+          </span>
+          <span className="recap-play">
+            <PlayIcon />
+          </span>
+        </button>
+
         <div className="tabs" role="tablist">
           {(
             [
@@ -225,31 +218,22 @@ export function Results(props: {
             )}
 
             {tab === "story" && (
-              <div className="story-wrap">
-                <TiltCard max={12}>
-                  {story ? (
-                    <img src={story.url} alt="এবারের পুজোর হিসেব" />
-                  ) : (
-                    <div className="slide-img" style={{ aspectRatio: "9 / 16", display: "grid", placeItems: "center" }}>
-                      <span style={{ color: "var(--gold)" }}>হিসেব কষছি…</span>
-                    </div>
-                  )}
-                </TiltCard>
-                <div>
-                  <h2 className="section-title">এবারের পুজোর হিসেব</h2>
-                  <ul className="story-lines">
-                    {lines.length ? lines.map((l) => <li key={l}>{l}</li>) : <li>ছবি কম, তাই হিসেবও ছোট। পরের বার আরও তুলো!</li>}
-                  </ul>
-                  <div className="actions" style={{ justifyContent: "flex-start" }}>
-                    <motion.button className="btn btn-primary" disabled={!story} onClick={shareStory} whileTap={{ scale: 0.97 }}>
-                      <ShareIcon /> স্টোরিতে দাও
-                    </motion.button>
-                    <button className="btn btn-ghost" disabled={!story} onClick={() => story && downloadBlob(story.blob, "pujor-hisheb.jpg")}>
-                      <DownloadIcon /> নামাও
+              <>
+                <div className="recap-grid">
+                  {slides.map((sl, k) => (
+                    <button key={sl.id} className="recap-thumb" onClick={() => setRecap(k)} aria-label={`স্লাইড ${bnNum(k + 1)} দেখো`}>
+                      <span>{bnNum(k + 1)}</span>
+                      <Thumb slide={sl} />
                     </button>
-                  </div>
+                  ))}
                 </div>
-              </div>
+                <div className="actions" style={{ marginTop: 22 }}>
+                  <motion.button className="btn btn-primary" onClick={() => setRecap(0)} whileTap={{ scale: 0.97 }}>
+                    <PlayIcon /> পুরোটা চালাও
+                  </motion.button>
+                </div>
+                <p className="note">চালিয়ে যেকোনো স্লাইডে "এটা শেয়ার করো" টিপলেই Instagram story বা WhatsApp-এ চলে যাবে।</p>
+              </>
             )}
 
             {tab === "captions" && (
@@ -302,6 +286,9 @@ export function Results(props: {
             )}
           </AnimatePresence>
           <AnimatePresence>
+            {recap !== null && <RecapPlayer key="recap" slides={slides} start={recap} onClose={() => setRecap(null)} />}
+          </AnimatePresence>
+          <AnimatePresence>
             {exporting && (
               <ExportSheet key="export" project={project} photo={photo} caption={captions[0]} onClose={() => setExporting(false)} onToast={showToast} />
             )}
@@ -324,6 +311,26 @@ export function Results(props: {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// A recap slide at thumbnail size, in its final state.
+function Thumb({ slide }: { slide: Slide }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [u, setU] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setU(el.clientWidth / SLIDE_W);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "absolute", inset: 0 }}>
+      {u > 0 && <SlideView slide={slide} u={u} still />}
     </div>
   );
 }

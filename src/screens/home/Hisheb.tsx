@@ -1,6 +1,6 @@
 // The Pujo story card, live: the photo count rolls up when it comes into
 // view and a tap deals out another (made-up) visitor's Pujo. Every line is
-// one the real card can write from the photos (lib/stats.ts).
+// one the real recap can write from the photos (recap/slides.ts).
 import { animate, AnimatePresence, motion, useInView, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { TiltCard } from "../../components/TiltCard";

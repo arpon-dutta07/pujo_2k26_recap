@@ -1,4 +1,3 @@
-import { bnKm, bnNum, bnTime } from "./bn";
 import { dayLabel } from "./days";
 import type { Photo } from "./types";
 
@@ -82,7 +81,7 @@ export function computeStats(photos: Photo[]): PujoStats {
   };
 }
 
-const DAY_PUNCH: Record<string, string> = {
+export const DAY_PUNCH: Record<string, string> = {
   before: "পুজো শুরুর আগেই অর্ধেক ঠাকুর দেখা শেষ!",
   panchami: "পঞ্চমী থেকেই ফুল ফর্মে।",
   shashthi: "ষষ্ঠী থেকেই ফুল ফর্মে।",
@@ -93,40 +92,6 @@ const DAY_PUNCH: Record<string, string> = {
   after: "পুজো শেষ, ক্যামেরা থামেনি।",
 };
 
-const dayIn = (label: string, day: string) =>
+export const dayIn = (label: string, day: string) =>
   day === "before" || day === "after" ? label : `${label}তে`;
 
-// Funny one-liners, most personal first. Only lines the data can back up.
-export function roastLines(s: PujoStats): string[] {
-  const lines: string[] = [];
-  if (s.total >= 5) {
-    lines.push(
-      s.people > s.thakur
-        ? `ঠাকুরের ছবি ${bnNum(s.thakur)}টা, নিজের ${bnNum(s.people)}টা। মা সব দেখছেন।`
-        : `ঠাকুরের ছবি ${bnNum(s.thakur)}টা, নিজের মাত্র ${bnNum(s.people)}টা। এ বছর সত্যিই ঠাকুর দেখতে বেরিয়েছিলে।`,
-    );
-  }
-  if (s.biggestGroup && s.biggestGroup.count >= 3) {
-    lines.push(
-      s.biggestGroup.eyesClosed > 0
-        ? `সবচেয়ে বড় গ্রুপ ছবিতে ${bnNum(s.biggestGroup.count)} জন। তার মধ্যে ${bnNum(s.biggestGroup.eyesClosed)} জনের চোখ বন্ধ।`
-        : `সবচেয়ে বড় গ্রুপ ছবিতে ${bnNum(s.biggestGroup.count)} জন, আর সবার চোখ খোলা। এটাই পুজোর আসল মিরাকল।`,
-    );
-  }
-  if (s.biggestBurst >= 4) {
-    lines.push(`একই পোজে ${bnNum(s.biggestBurst)}টা ছবি। ভালো এসেছে একটাই, সেটা রেখে দিয়েছি।`);
-  }
-  if (s.latest) {
-    const h = s.latest.getHours();
-    if (h < 5) lines.push(`শেষ ছবি ${bnTime(s.latest)}-এ। ঘুম? সেটা আবার কী?`);
-    else if (h >= 22) lines.push(`${bnTime(s.latest)}-এও ক্যামেরা চলছিল।`);
-  }
-  if (s.busiestDay && s.busiestDay.count >= 3) {
-    lines.push(
-      `সবচেয়ে বেশি ছবি ${dayIn(s.busiestDay.label, s.busiestDay.day)}: ${bnNum(s.busiestDay.count)}টা। ${DAY_PUNCH[s.busiestDay.day] ?? ""}`.trim(),
-    );
-  }
-  if (s.km) lines.push(`ছবির লোকেশন বলছে, পুজোয় মোট ${bnKm(s.km)} কিমি ঘুরেছ।`);
-  if (s.blurry >= 5) lines.push(`${bnNum(s.blurry)}টা ছবি ঝাপসা। ভিড়ে হাত কেঁপেছিল, বুঝি।`);
-  return lines;
-}

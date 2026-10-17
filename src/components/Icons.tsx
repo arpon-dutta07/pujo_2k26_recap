@@ -273,3 +273,9 @@ export const DragIcon = (p: P) => (
     <path d="M15 10.5a1.5 1.5 0 0 1 3 0v3.5a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.6-2.2L4.3 14.6a1.5 1.5 0 0 1 2.2-2L9 15" />
   </svg>
 );
+
+export const PlayIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+  </svg>
+);
