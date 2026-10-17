@@ -262,5 +262,53 @@
     "src": "/stickers/s13-thakurer-shaj-6.webp",
     "w": 285,
     "h": 320
+  },
+  {
+    "id": "s14-pandal-1",
+    "name": "আলোর প্যান্ডেল",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-1.webp",
+    "w": 373,
+    "h": 381
+  },
+  {
+    "id": "s14-pandal-2",
+    "name": "কাগজের লন্ঠন",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-2.webp",
+    "w": 205,
+    "h": 394
+  },
+  {
+    "id": "s14-pandal-3",
+    "name": "ঝাড়বাতি",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-3.webp",
+    "w": 305,
+    "h": 393
+  },
+  {
+    "id": "s14-pandal-4",
+    "name": "ঢাকি",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-4.webp",
+    "w": 271,
+    "h": 425
+  },
+  {
+    "id": "s14-pandal-5",
+    "name": "ধুনুচি নাচ",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-5.webp",
+    "w": 294,
+    "h": 423
+  },
+  {
+    "id": "s14-pandal-6",
+    "name": "টুনি বাল্ব",
+    "group": "প্যান্ডেল",
+    "src": "/stickers/s14-pandal-6.webp",
+    "w": 318,
+    "h": 270
   }
 ]
