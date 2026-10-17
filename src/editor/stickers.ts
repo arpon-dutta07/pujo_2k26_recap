@@ -1,5 +1,8 @@
 // Pujo stickers: transparent WebP cut-outs in public/stickers. w and h are the
 // files' real pixel sizes (keeps the aspect ratio right before the image loads).
+// The first eight are hand-picked; the rest come from `npm run stickers`
+// (scripts/build-stickers.mjs), which cuts sheets in moodboard/stickers.
+import generated from "./stickers.generated.json";
 import type { StickerItem } from "./types";
 
 export type StickerDef = {
@@ -8,9 +11,12 @@ export type StickerDef = {
   src: string;
   w: number;
   h: number;
+  group?: string;
 };
 
-export const STICKERS: StickerDef[] = [
+export const STICKER_GROUP_DEFAULT = "পুজোর জিনিস";
+
+const BUILT_IN: StickerDef[] = [
   { id: "dhak", name: "ঢাক", src: "/stickers/dhak.webp", w: 640, h: 610 },
   { id: "shankh", name: "শাঁখ", src: "/stickers/shankh.webp", w: 640, h: 574 },
   { id: "joba", name: "জবা ফুল", src: "/stickers/joba.webp", w: 640, h: 596 },
@@ -20,6 +26,18 @@ export const STICKERS: StickerDef[] = [
   { id: "radio", name: "মহালয়ার রেডিও", src: "/stickers/radio.webp", w: 640, h: 579 },
   { id: "jhumka", name: "ঝুমকো", src: "/stickers/jhumka.webp", w: 640, h: 565 },
 ];
+
+export const STICKERS: StickerDef[] = [...BUILT_IN, ...(generated as StickerDef[])];
+
+// Stickers by group, in first-seen order, for the panel.
+export function stickerGroups(): Array<[string, StickerDef[]]> {
+  const groups = new Map<string, StickerDef[]>();
+  for (const st of STICKERS) {
+    const g = st.group ?? STICKER_GROUP_DEFAULT;
+    groups.set(g, [...(groups.get(g) ?? []), st]);
+  }
+  return [...groups.entries()];
+}
 
 const stickerMap = new Map<string, StickerDef>(STICKERS.map((s) => [s.id, s]));
 

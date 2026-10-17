@@ -6,7 +6,7 @@ import { dayLabel } from "../lib/days";
 import type { Photo } from "../lib/types";
 import { contrastInk, FONTS, PAPER, templateThumb } from "./render";
 import { StickerSvg } from "./StickerSvg";
-import { STICKERS, type StickerDef } from "./stickers";
+import { stickerGroups, type StickerDef } from "./stickers";
 import { templateById, templatesFor } from "./templates";
 import { FORMATS, type FontKey, type Format, type TextItem, type TextStyle } from "./types";
 
@@ -336,13 +336,18 @@ export function StickerPanel({
       <p className="panel-hint">
         ট্যাপ করলে পাতার মাঝখানে বসবে, বা টেনে এনে পাতার যেখানে খুশি ফেলো (ফোনে একটু চেপে ধরে টানো)। কোণের গোল বোতাম টেনে ঘোরাও আর বড়-ছোট করো।
       </p>
-      <div className="st-grid">
-        {STICKERS.map((s) => (
-          <button key={s.id} type="button" className="st-tile" aria-label={s.name} title={s.name} {...handlers(s)}>
-            <StickerSvg def={s} />
-          </button>
-        ))}
-      </div>
+      {stickerGroups().map(([group, list], gi) => (
+        <div key={group} className="st-group">
+          {(gi > 0 || stickerGroups().length > 1) && <h4 className="panel-title">{group}</h4>}
+          <div className="st-grid">
+            {list.map((st) => (
+              <button key={st.id} type="button" className="st-tile" aria-label={st.name} title={st.name} {...handlers(st)}>
+                <StickerSvg def={st} />
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
       <h4 className="panel-title">লেখা-স্টিকার</h4>
       <div className="tx-presets">
         {TEXT_PRESETS.map((t) => (

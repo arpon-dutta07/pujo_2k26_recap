@@ -9,6 +9,7 @@
     "model": "node scripts/fetch-model.mjs",
     "dev": "vite",
     "templates": "node scripts/build-templates.mjs",
+    "stickers": "node scripts/build-stickers.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
