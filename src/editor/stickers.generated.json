@@ -214,5 +214,53 @@
     "src": "/stickers/s03-dhak-gaan-9.webp",
     "w": 303,
     "h": 210
+  },
+  {
+    "id": "s13-thakurer-shaj-1",
+    "name": "শোলার মুকুট",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-1.webp",
+    "w": 370,
+    "h": 363
+  },
+  {
+    "id": "s13-thakurer-shaj-2",
+    "name": "ত্রিশূল",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-2.webp",
+    "w": 206,
+    "h": 432
+  },
+  {
+    "id": "s13-thakurer-shaj-3",
+    "name": "চক্র",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-3.webp",
+    "w": 331,
+    "h": 345
+  },
+  {
+    "id": "s13-thakurer-shaj-4",
+    "name": "খড়্গ",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-4.webp",
+    "w": 243,
+    "h": 437
+  },
+  {
+    "id": "s13-thakurer-shaj-5",
+    "name": "জবার মালা",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-5.webp",
+    "w": 261,
+    "h": 424
+  },
+  {
+    "id": "s13-thakurer-shaj-6",
+    "name": "মায়ের পা",
+    "group": "ঠাকুরের সাজ",
+    "src": "/stickers/s13-thakurer-shaj-6.webp",
+    "w": 285,
+    "h": 320
   }
 ]
