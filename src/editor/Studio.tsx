@@ -572,8 +572,15 @@ export function Studio({
     if (!wide) setTool(null);
   };
 
+  // New template on this page: its photos move over, and any extra windows
+  // fill with photos not used anywhere yet (AI picks first).
   const pickTemplate = (id: string) => {
-    commit(updatePage(project, page.id, (p) => withTemplate(p, id, format)));
+    const moved = updatePage(project, page.id, (p) => withTemplate(p, id, format));
+    const changed = moved.pages.find((p) => p.id === page.id)!;
+    const others = { ...moved, pages: moved.pages.filter((p) => p.id !== page.id) };
+    const pool = [...ai, ...mine, ...rest.filter((p) => p.status === "ok")].filter((p) => !usedPhotoIds(others).has(p.id));
+    const filled = autofill({ format, pages: [changed] }, pool).pages[0];
+    commit(updatePage(moved, page.id, () => filled));
     setSel(null);
   };
 
