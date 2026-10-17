@@ -7,7 +7,7 @@ import type { Photo } from "../lib/types";
 import { contrastInk, FONTS, PAPER, templateThumb } from "./render";
 import { StickerSvg } from "./StickerSvg";
 import { STICKERS } from "./stickers";
-import { TEMPLATES, templateById } from "./templates";
+import { templateById, templatesFor } from "./templates";
 import { FORMATS, type FontKey, type Format, type TextItem, type TextStyle } from "./types";
 
 // ---------- templates ----------
@@ -60,8 +60,9 @@ export const TemplateTile = memo(function TemplateTile({
 });
 
 export function TemplatePanel({ format, current, onPick }: { format: Format; current?: string; onPick: (id: string) => void }) {
-  const singles = TEMPLATES.filter((t) => (t.span ?? 1) === 1);
-  const panos = TEMPLATES.filter((t) => (t.span ?? 1) > 1);
+  const live = templatesFor(format);
+  const singles = live.filter((t) => (t.span ?? 1) === 1);
+  const panos = live.filter((t) => (t.span ?? 1) > 1);
   return (
     <div className="panel-body">
       <p className="panel-hint">যে পাতাটা সামনে আছে, তাতে বসবে। ছবিগুলো নতুন ফ্রেমেও থেকে যাবে।</p>

@@ -1,6 +1,5 @@
 // Turns pages into pixels: the cached template layers shown behind the live
 // editor, template thumbnails, and the full-size JPEGs that get shared.
-import { SITE } from "../config";
 import { bnDate, bnTime } from "../lib/bn";
 import { dayLabel } from "../lib/days";
 import { canvasToJpeg } from "../lib/image";
@@ -8,7 +7,7 @@ import { ensureFonts, FONT } from "../lib/render/draw";
 import type { ExportFile } from "../lib/share";
 import type { Photo } from "../lib/types";
 import { deg, place, slotPath } from "./geometry";
-import { drawSticker, stickerById } from "./stickers";
+import { drawSticker, getStickerImage, stickerById } from "./stickers";
 import { templateById } from "./templates";
 import { FORMATS, type FontKey, type Format, type Page, type Project, type TemplateDef, type TextItem } from "./types";
 
@@ -93,124 +92,21 @@ export function drawText(ctx: CanvasRenderingContext2D, item: TextItem, content:
 
 // ---------- template layers (cached) ----------
 
-const toBlobUrl = (c: HTMLCanvasElement, type: string, q?: number) =>
-  new Promise<string>((resolve) => {
-    c.toBlob(
-      (b) => resolve(b ? URL.createObjectURL(b) : c.toDataURL(type, q)),
-      type,
-      q,
-    );
-  });
+// Image templates: the template picture with its photo windows cut out
+// (transparent). Photos go underneath it.
+export type Layers = { bg: string | null; over: string | null };
 
-export type Layers = { bg: string; over: string | null };
-const layerCache = new Map<string, Promise<Layers>>();
+export const overlayUrl = (templateId: string, format: Format) => {
+  const def = templateById(templateId);
+  return def.overlaySrc?.[format] || def.src || `/templates/${templateId}__${format}.webp`;
+};
 
-export function templateLayers(templateId: string, format: Format): Promise<Layers> {
-  const key = `${templateId}:${format}`;
-  let hit = layerCache.get(key);
-  if (!hit) {
-    hit = (async () => {
-      await ensureFonts();
-      const def = templateById(templateId);
-      const { W, H } = pageSize(format, def);
-      const c = document.createElement("canvas");
-      c.width = W;
-      c.height = H;
-      const ctx = c.getContext("2d")!;
-      def.paint(ctx, W, H);
-      const bg = await toBlobUrl(c, "image/jpeg", 0.9);
-      let over: string | null = null;
-      if (def.over) {
-        ctx.clearRect(0, 0, W, H);
-        def.over(ctx, W, H);
-        over = await toBlobUrl(c, "image/png");
-      }
-      c.width = c.height = 1;
-      return { bg, over };
-    })();
-    layerCache.set(key, hit);
-  }
-  return hit;
+export async function templateLayers(templateId: string, format: Format): Promise<Layers> {
+  return { bg: null, over: overlayUrl(templateId, format) };
 }
 
-// Small preview of a template with placeholder photos, for pickers and the landing page.
-const thumbCache = new Map<string, Promise<string>>();
-
-function placeholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, i: number) {
-  const g = ctx.createLinearGradient(x, y, x + w, y + h);
-  const hues = [
-    ["#e9b98a", "#b4562f"],
-    ["#d9a0a4", "#7c2735"],
-    ["#e8c77b", "#a2622a"],
-    ["#c9a98a", "#5d3b2a"],
-  ][i % 4];
-  g.addColorStop(0, hues[0]);
-  g.addColorStop(1, hues[1]);
-  ctx.fillStyle = g;
-  ctx.fillRect(x, y, w, h);
-  // a person-shaped silhouette so it reads as "your photo here"
-  const cx = x + w / 2;
-  const s = Math.min(w, h);
-  ctx.fillStyle = "rgba(255,240,220,0.35)";
-  ctx.beginPath();
-  ctx.arc(cx, y + h * 0.5 - s * 0.12, s * 0.13, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(cx, y + h * 0.5 + s * 0.24, s * 0.26, s * 0.2, 0, Math.PI, 0);
-  ctx.fill();
-}
-
-// Thumbnails are painted one after another with a pause in between, so a
-// panel full of them never freezes a scroll.
-let thumbQueue: Promise<unknown> = Promise.resolve();
-
-export function templateThumb(templateId: string, format: Format, width = 360): Promise<string> {
-  const key = `${templateId}:${format}:${width}`;
-  let hit = thumbCache.get(key);
-  if (!hit) {
-    hit = thumbQueue.then(async () => {
-      await new Promise((r) => setTimeout(r, 16));
-      await ensureFonts();
-      const def = templateById(templateId);
-      const { W, H } = pageSize(format, def);
-      const k = (width * (def.span ?? 1)) / W;
-      const c = document.createElement("canvas");
-      c.width = Math.round(W * k);
-      c.height = Math.round(H * k);
-      const ctx = c.getContext("2d")!;
-      ctx.scale(k, k);
-      def.paint(ctx, W, H);
-      const layout = def.layout(W, H);
-      layout.slots.forEach((s, i) => {
-        ctx.save();
-        ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
-        ctx.rotate(deg(s.rotate ?? 0));
-        ctx.beginPath();
-        slotPath(ctx, s, -s.w / 2, -s.h / 2);
-        ctx.clip();
-        placeholder(ctx, -s.w / 2, -s.h / 2, s.w, s.h, i);
-        ctx.restore();
-      });
-      def.over?.(ctx, W, H);
-      for (const st of layout.stickers ?? []) {
-        const sd = stickerById(st.kind);
-        if (!sd) continue;
-        ctx.save();
-        ctx.translate(st.x, st.y);
-        ctx.rotate(deg(st.rotate ?? 0));
-        drawSticker(ctx, sd, st.size);
-        ctx.restore();
-      }
-      for (const t of layout.texts ?? []) {
-        if (t.bind && t.bind.field !== "day") continue;
-        drawText(ctx, { id: "", rotate: 0, align: "center", style: "plain", ...t }, t.text);
-      }
-      return toBlobUrl(c, "image/jpeg", 0.86);
-    });
-    thumbQueue = hit.catch(() => undefined);
-    thumbCache.set(key, hit);
-  }
-  return hit;
+export function templateThumb(templateId: string, format: Format): Promise<string> {
+  return Promise.resolve(overlayUrl(templateId, format));
 }
 
 // ---------- full-size export ----------
@@ -224,36 +120,22 @@ async function decodeAt(photo: Photo, width: number): Promise<ImageBitmap> {
   }
 }
 
-export function drawLink(ctx: CanvasRenderingContext2D, x: number, H: number) {
-  ctx.save();
-  ctx.font = `500 24px "${FONT.body}"`;
-  const w = ctx.measureText(SITE.link).width + 32;
-  ctx.fillStyle = "rgba(20,8,5,0.42)";
-  ctx.beginPath();
-  ctx.roundRect(x - w / 2, H - 58, w, 36, 18);
-  ctx.fill();
-  ctx.fillStyle = "#fff3dc";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(SITE.link, x, H - 40);
-  ctx.restore();
-}
-
 export async function renderPage(
   page: Page,
   format: Format,
   photo: (id: string) => Photo | undefined,
-  marks: { first: boolean; last: boolean },
 ): Promise<HTMLCanvasElement> {
   await ensureFonts();
   const def = templateById(page.template);
-  const { W, H, slideW } = pageSize(format, def);
+  const { W, H } = pageSize(format, def);
   const c = document.createElement("canvas");
   c.width = W;
   c.height = H;
   const ctx = c.getContext("2d")!;
   ctx.imageSmoothingQuality = "high";
-  def.paint(ctx, W, H);
+  // Empty windows come out as plain photo paper, like in the editor.
+  ctx.fillStyle = "#e9e0cd";
+  ctx.fillRect(0, 0, W, H);
   const layout = def.layout(W, H);
   for (const s of layout.slots) {
     const f = page.fills[s.id];
@@ -272,20 +154,32 @@ export async function renderPage(
     ctx.restore();
     bmp.close();
   }
-  def.over?.(ctx, W, H);
+
+  // Draw template overlay on top of photos per ANTIGRAVITY.md Task A
+  const overlayUrl = def.overlaySrc?.[format] || def.src || `/templates/${def.id}__${format}.webp`;
+  try {
+    const res = await fetch(overlayUrl);
+    if (res.ok) {
+      const blob = await res.blob();
+      const overlayBmp = await createImageBitmap(blob);
+      ctx.drawImage(overlayBmp, 0, 0, W, H);
+      overlayBmp.close();
+    }
+  } catch (err) {
+    console.warn("Failed to load export overlay:", overlayUrl, err);
+  }
+
+  // Wait for every sticker picture, or a fresh export would leave them out.
+  await Promise.all(
+    page.stickers.map((st) => {
+      const d = stickerById(st.kind);
+      return d ? getStickerImage(d.src).catch(() => null) : null;
+    }),
+  );
   for (const st of page.stickers) {
-    const sd = stickerById(st.kind);
-    if (!sd) continue;
-    ctx.save();
-    ctx.translate(st.x, st.y);
-    ctx.rotate(deg(st.rotate));
-    if (st.flip) ctx.scale(-1, 1);
-    drawSticker(ctx, sd, st.size);
-    ctx.restore();
+    drawSticker(ctx, st);
   }
   for (const t of page.texts) drawText(ctx, t, textOf(t, page, photo));
-  if (marks.first) drawLink(ctx, slideW / 2, H);
-  if (marks.last) drawLink(ctx, W - slideW / 2, H);
   return c;
 }
 
@@ -308,7 +202,7 @@ export async function exportProject(
     onProgress(i, total);
     await new Promise((r) => setTimeout(r, 0));
     const page = project.pages[i];
-    const canvas = await renderPage(page, project.format, photo, { first: i === 0, last: i === total - 1 });
+    const canvas = await renderPage(page, project.format, photo);
     const def = templateById(page.template);
     const { slideW, span, H } = pageSize(project.format, def);
     if (span === 1) {

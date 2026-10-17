@@ -10,7 +10,7 @@ import { clearPhotoPreviews } from "../editor/photos";
 import { buildProject, historyReducer } from "../editor/project";
 import { Studio } from "../editor/Studio";
 import "../editor/studio.css";
-import { templateById } from "../editor/templates";
+import { defaultFormat, templateById } from "../editor/templates";
 import { bnNum } from "../lib/bn";
 import { captionIdeas } from "../lib/captions";
 import { DAY_ORDER, dayLabel } from "../lib/days";
@@ -76,7 +76,7 @@ export function Results(props: {
   const subtitle = useMemo(() => coverSubtitle(chosen), [chosen]);
   const [hist, dispatch] = useReducer(historyReducer, undefined, () => ({
     past: [],
-    present: buildProject(chosen, "post", { title: "পুজো ২০২৬", subtitle }),
+    present: buildProject(chosen, defaultFormat(), { title: "পুজো ২০২৬", subtitle }),
     future: [],
   }));
   const built = useRef(selected);
@@ -209,7 +209,6 @@ export function Results(props: {
                         page={p}
                         format={project.format}
                         photo={photo}
-                        edge={{ first: i === 0, last: i === project.pages.length - 1 }}
                       />
                       <span className="proj-label">
                         {bnNum(i + 1)}. {templateById(p.template).name}

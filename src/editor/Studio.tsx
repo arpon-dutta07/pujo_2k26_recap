@@ -34,8 +34,8 @@ import { PageView, type Live, type Sel } from "./PageView";
 import { PhotoPanel, StickerPanel, TemplatePanel, TextPanel, type TextDraft } from "./Panels";
 import { autofill, fillFor, layoutOf, makePage, updatePage, usedPhotoIds, withFormat, withTemplate, type HistoryAction } from "./project";
 import { pageSize } from "./render";
-import { stickerBox, stickerById } from "./stickers";
-import { templateById } from "./templates";
+import { stickerById } from "./stickers";
+import { availableFormats, templateById } from "./templates";
 import { FORMATS, uid, type Fill, type Format, type Page, type Project, type StickerItem, type TextItem } from "./types";
 import "./studio.css";
 
@@ -537,8 +537,8 @@ export function Studio({
     const def = stickerById(kind);
     if (!def) return;
     const c = visibleCenter(page, current);
-    const box = stickerBox(def);
-    const size = Math.min(380, (box.w / Math.max(box.w, box.h)) * 340);
+    const ratio = def.w > 0 ? def.h / def.w : 1;
+    const size = ratio > 1 ? 340 / ratio : 340;
     const item: StickerItem = { id: uid("s"), kind, x: c.x, y: c.y, size, rotate: 0 };
     commit(updatePage(project, page.id, (p) => ({ ...p, stickers: [...p.stickers, item] })));
     setSel({ kind: "sticker", id: item.id, pageId: page.id });
@@ -717,7 +717,13 @@ export function Studio({
         </button>
         <div className="seg" role="group" aria-label="মাপ">
           {(Object.keys(FORMATS) as Format[]).map((f) => (
-            <button key={f} type="button" aria-pressed={format === f} onClick={() => setFormat(f)}>
+            <button
+              key={f}
+              type="button"
+              aria-pressed={format === f}
+              disabled={!availableFormats().includes(f)}
+              onClick={() => setFormat(f)}
+            >
               {FORMATS[f].label} <small>{FORMATS[f].short}</small>
             </button>
           ))}
@@ -771,7 +777,6 @@ export function Studio({
                       interactive
                       live={live && live.pageId === p.id ? live : null}
                       selected={sel && sel.pageId === p.id ? sel : null}
-                      edge={{ first: i === 0, last: i === pages.length - 1 }}
                     />
                     {span > 1 &&
                       Array.from({ length: span }, (_, k) => (

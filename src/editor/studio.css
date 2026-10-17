@@ -25,10 +25,12 @@
   background: #2a150d;
 }
 
+/* An empty window shows plain photo paper until a photo goes in. */
 .pv-slot {
   position: absolute;
   overflow: hidden;
   touch-action: pan-x;
+  background: #e9e0cd;
 }
 
 .pv-slot img {
@@ -142,21 +144,6 @@
   z-index: 7;
 }
 
-.pv-link {
-  position: absolute;
-  bottom: 0.917em;
-  translate: -50% 0;
-  height: 1.5em;
-  line-height: 1.5em;
-  padding: 0 0.667em;
-  border-radius: 0.75em;
-  background: rgba(20, 8, 5, 0.42);
-  color: #fff3dc;
-  font-family: var(--font-body);
-  font-weight: 500;
-  white-space: nowrap;
-  pointer-events: none;
-}
 
 /* ---------- studio shell ---------- */
 

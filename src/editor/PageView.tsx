@@ -3,7 +3,6 @@
 // dragging only moves one element.
 import { memo, useEffect, useState, type CSSProperties } from "react";
 import { CloseIcon, PlusIcon, RotateIcon } from "../components/Icons";
-import { SITE } from "../config";
 import type { Photo } from "../lib/types";
 import { place, slotRadiusCss } from "./geometry";
 import { usePhotoSrc } from "./photos";
@@ -111,8 +110,7 @@ const StickerView = memo(function StickerView({
 }) {
   const def = stickerById(item.kind);
   if (!def) return null;
-  const box = stickerBox(def);
-  const h = (item.size * box.h) / box.w;
+  const { h } = stickerBox(item);
   return (
     <div
       className="pv-item"
@@ -186,7 +184,6 @@ export const PageView = memo(function PageView({
   live = null,
   selected = null,
   interactive = false,
-  edge,
 }: {
   page: Page;
   format: Format;
@@ -194,7 +191,6 @@ export const PageView = memo(function PageView({
   live?: Live | null;
   selected?: Sel | null;
   interactive?: boolean;
-  edge?: { first: boolean; last: boolean };
 }) {
   const def = templateById(page.template);
   const { W, H, span, slideW } = pageSize(format, def);
@@ -205,7 +201,7 @@ export const PageView = memo(function PageView({
 
   return (
     <div className="pv" data-page={page.id} style={{ aspectRatio: `${W} / ${H}` }}>
-      {layers ? <img className="pv-layer" src={layers.bg} alt="" draggable={false} /> : <div className="pv-layer pv-wait" />}
+      {layers?.bg ? <img className="pv-layer" src={layers.bg} alt="" draggable={false} /> : null}
       {layout.slots.map((s) => {
         const fill = live?.kind === "slot" && live.id === s.id ? live.fill : page.fills[s.id] ?? null;
         return (
@@ -260,16 +256,7 @@ export const PageView = memo(function PageView({
       })}
       {span > 1 &&
         Array.from({ length: span - 1 }, (_, i) => <div key={i} className="pv-seam" style={{ left: pct((i + 1) * slideW, W) }} />)}
-      {edge?.first && <LinkMark x={slideW / 2} W={W} />}
-      {edge?.last && <LinkMark x={W - slideW / 2} W={W} />}
     </div>
   );
 });
 
-function LinkMark({ x, W }: { x: number; W: number }) {
-  return (
-    <div className="pv-link" style={{ left: pct(x, W), fontSize: `${(24 / W) * 100}cqw` }}>
-      {SITE.link}
-    </div>
-  );
-}
