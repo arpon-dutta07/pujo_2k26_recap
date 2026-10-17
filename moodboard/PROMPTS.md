@@ -1,0 +1,138 @@
+# পুজোর ঝুলি: image prompts (stickers + moodboards)
+
+For Antigravity (or any image model). Follow the steps exactly. The site turns the images into stickers and templates automatically, but only if these rules are kept.
+
+---
+
+## Part 1: Sticker sheets
+
+**Style references** (attach one to every generation, never copy them):
+
+- `moodboard/references/stickers-style-01.jpg` for **Style A**: illustrated die-cut stickers.
+- `moodboard/references/stickers-style-02.jpg` for **Style B**: painted collage cut-outs.
+
+### Steps
+
+1. Build each prompt as **STYLE (A or B) + SHEET RULES + that sheet's 9 subjects**, in the order given.
+2. Generate it square, at the highest resolution available (2048x2048 if possible).
+3. Reject the image and regenerate if any of these is true:
+   - the count is not exactly 9
+   - two stickers touch or overlap
+   - the background is not flat green
+   - there is a watermark
+   - any text is misspelled
+4. Save it as `moodboard/stickers/<sheet id>.png`.
+5. Add the sheet to `moodboard/stickers.json`. The `names` list is in reading order: left to right, top row first. Example:
+   ```json
+   { "s01-pujor-jinish": { "group": "পুজোর জিনিস", "names": ["শাঁখ", "ঘণ্টা", "পঞ্চপ্রদীপ", "ধুনুচি", "কোশাকুশি", "মঙ্গলঘট", "চামর", "সিঁদুর কৌটো", "প্রদীপের থালা"] } }
+   ```
+6. Run `npm run stickers`.
+   - Open `moodboard/debug/stickers__<sheet id>.png`: you should see 9 magenta boxes with one sticker in each.
+   - If two stickers were merged into one box, or one sticker was split across two, regenerate the sheet with more space between the stickers.
+7. Run `npm run build`, then commit.
+
+### STYLE A (illustrated die-cut, like stickers-style-01)
+
+> A sheet of hand-illustrated Bengali Durga Puja stickers, warm gouache and watercolour look with soft shading and fine ink outlines, rich deep red, cream, antique gold, leaf green and marigold orange, each sticker with a thick clean cream-white die-cut border and a thin darker outline around that border, premium printed-sticker quality.
+
+### STYLE B (collage cut-outs, like stickers-style-02)
+
+> A sheet of painted collage cut-out elements for a Bengali Durga Puja scrapbook, realistic painted look with soft light, each element cleanly cut out along its own shape with a very thin white edge, no thick border.
+
+### SHEET RULES (end of every sticker prompt)
+
+> Exactly 9 separate stickers arranged in a loose 3 x 3 grid, each one complete and fully inside the image, with wide empty space between them (at least one tenth of the image width), no sticker touching or overlapping another. Background: perfectly flat solid pure green #00FF00 everywhere around and between the stickers, no gradient, no texture, no shadow on the background. No watermark, logo or signature. No text unless a sticker below asks for it; any text spelled exactly as given.
+
+### The 12 sheets (108 stickers)
+
+| Sheet id | Group (Bangla) | Style | The 9 subjects, in reading order |
+| --- | --- | --- | --- |
+| `s01-pujor-jinish` | পুজোর জিনিস | A | conch shell with red markings; brass temple bell; five-wick brass panchapradip lamp with flames; terracotta dhunuchi with curling smoke; brass kosha-kushi; clay mangal ghot with mango leaves and a red mark; white chamor fan with silver handle; open wooden sindoor box with red powder; brass plate with a diya and red and white flowers |
+| `s02-phul-pata` | ফুল-পাতা | A | red hibiscus with two leaves; pink lotus in full bloom; sprig of white shiuli flowers with orange stems; bunch of orange marigolds; white kash flower stalks; three bel leaves on one stem; string of mango leaves; heart-shaped paan leaf; white tuberose (rajanigandha) stems |
+| `s03-dhak-gaan` | ঢাক আর গান | A | Bengali dhak drum with a white feather plume and red tassels; pair of wooden dhak sticks crossed; bell-metal kanshor ghonta gong with striker; wooden harmonium; sitar; vintage valve radio; gramophone with a brass horn; old cassette tape; pair of tabla drums |
+| `s04-shajgoj` | সাজগোজ | A | pair of gold jhumka earrings; white shakha and red pola bangles; gold nath nose ring with a chain; red bindi and a line of sindoor; small bottle of red alta with cotton; hand with mehndi and red alta tips; folded white saree with a red laal paar border; embroidered red juttis; brass hand mirror |
+| `s05-khaoa-daoa` | খাওয়াদাওয়া | A | bowl of white rosogolla in syrup; sandesh pieces on a banana leaf; mishti doi in a terracotta bhaar; brass plate of khichuri bhog with labra and beguni; luchi with alur dom; plate of phuchka; kathi roll in paper; tea in a clay bhaar with steam; coil of orange jilipi |
+| `s06-kolkata` | কলকাতা | A | yellow Ambassador taxi; Kolkata tram; Howrah Bridge; Victoria Memorial; old street gas lamp; round palm-leaf hand fan (taal pakha); red pillar post box (no logo); paan stall box with betel leaves; illuminated pandal gate |
+| `s07-mayer-poribar` | মায়ের পরিবার | A | face of Maa Durga with the third eye, in Bengali folk-art style; little Ganesh with a mouse; Lakshmi with an owl; Saraswati with a veena and a swan; Kartik with a peacock; Durga's lion; white owl; white swan; peacock feather (all gentle, respectful folk-art illustrations) |
+| `s08-lekha-english` | লেখা (English) | A | paper note "Pujo Vibes" with a small heart; red calligraphy "Durga Puja"; "Maa" in red script with a heart; paper note "Same Girl, Different Festive Era"; red brush stroke with "Good Energy Always"; kraft tag "Pandal Hopping"; red ribbon banner "Shubho Sharodiya"; torn paper "Asche Bochor Abar Hobe"; round badge "Dhaker Taale" |
+| `s09-lekha-bangla` | বাংলা লেখা | A | red Bengali calligraphy, each on cream paper with a die-cut border, spelled exactly: "শুভ দুর্গাপুজা"; "শুভ শারদীয়া"; "আসছে বছর আবার হবে"; "দুগ্গা দুগ্গা"; "মা আসছেন"; "ঢাকের তালে"; "পুজোর গন্ধ"; "প্যান্ডেল হপিং"; "বিজয়ার শুভেচ্ছা" (check every letter; regenerate if one is wrong) |
+| `s10-chhoto-shaj` | ছোট সাজ | A | red heart; gold outline heart; red ribbon bow; single white jasmine flower; gold four-point sparkle star; strip of washi tape with red block print; brass paper clip; blank torn paper note; postage stamp with a lotus |
+| `s11-collage-1` | কোলাজ | B | mehndi hand holding a pink lotus; white dove in flight; sitar; ornate gold hand mirror; white swan figurine; pair of embroidered juttis; gramophone; cluster of pink lotuses with leaves; gold wax seal with a heart |
+| `s12-collage-2` | কোলাজ | B | hand with red alta and bangles holding flowers; brass diya with a flame; terracotta Bankura horse; vintage film camera; old pocket watch; ornate brass key; fountain pen with an ink bottle; envelope with a red wax seal; stack of old books with jasmine on top |
+
+---
+
+## Part 2: Moodboard templates
+
+**Style references:** `moodboard/references/style-01.webp` to `style-08.webp` (and the 8 live templates in `moodboard/originals/`).
+
+- Attach 02, 03 or 04 for the light designs.
+- Attach 08 for the dark designs.
+
+### Steps
+
+1. Build each prompt as **BASE + the design text + FRAME RULES**, with that design's photo count and window colour filled in.
+2. Generate in vertical **9:16** at the highest resolution. Make 3 variations and keep the best one.
+3. Reject the image and regenerate if any of these is true:
+   - the number of empty frames is wrong
+   - anything sits inside a frame (words like "ছবি বসাও", a flower, an icon)
+   - a frame's inside is not one flat colour
+   - any Bangla text is misspelled
+   - there is a watermark
+4. Save it as `moodboard/originals/<id>__story.png`.
+   - Optional: the same design recomposed in 4:5, saved as `<id>__post.png`.
+5. Add it to `moodboard/templates.json`, for example: `"kumartuli": { "name": "কুমোরটুলি", "photos": 1 }`.
+6. Run `npm run templates`.
+   - It must print `ok <id>__story: N/N windows`.
+   - Open `moodboard/debug/<id>__story.png`: every frame should be pink with a red box, and nothing else should be pink.
+   - If a paper rim is left inside a frame, add `"tune": { "colour": 44, "reach": 14, "grow": 3 }` to that entry and run it again.
+7. Add `"<id>__story"` to `VERIFIED` in `src/editor/templates.ts`. Then run `npm run build` and commit.
+
+### BASE (start of every moodboard prompt)
+
+> Vertical 9:16 phone-story moodboard, ultra detailed, high resolution. A handmade scrapbook collage about Bengali Durga Puja in Kolkata: layered torn paper, aged vintage photo paper, washi tape, brass paper clips, wooden pegs, lace doilies, die-cut paper stickers with white borders, real props photographed from above, Bengali red-and-white laal paar saree textures, warm golden festive light, deep reds, cream, turmeric yellow and antique gold, soft realistic shadows. Nostalgic and emotional, the feeling of "pujo mane bari phera" (Pujo means coming home). Same visual quality and richness as the attached reference image, but a completely new composition.
+
+### FRAME RULES (end of every moodboard prompt; fill in N and COLOUR)
+
+> The collage contains EXACTLY N empty photo frames for the viewer's own photos. The inside of every frame is one perfectly flat, solid, plain COLOUR: completely blank, with no texture, no stain, no gradient, no shadow, no text, no icon and no object inside. Decorations may touch a frame's border or overlap one small corner, but never the inside. Every frame is large (at least a third of the image width), roughly rectangular, upright or tilted no more than 10 degrees, and no two frames overlap. No watermark, logo, signature, app interface or brand name. Bengali text only where this prompt gives it, spelled exactly as given; no other text anywhere.
+
+COLOUR = `warm beige #E6DCC8` for light designs, `matte black #121212` for night designs.
+
+### Designs 1-15
+
+The first 15 designs (কুমোরটুলি, মহালয়ার ভোর, কাশবন, বনেদি বাড়ির পুজো, অষ্টমীর অঞ্জলি, সন্ধিপুজোর প্রদীপ, ধুনুচি নাচ, প্যান্ডেল হপিং, ভোগ আর মিষ্টি, লাল পাড়, সিঁদুর খেলা, বিসর্জন, পুরনো কলকাতা, কালীঘাট পট, আলপনা আর শিউলি) are in `ANTIGRAVITY.md`, section 5.1.
+
+### Designs 16-35 (new)
+
+| # | id | Bangla name | Photos | Window | Design (goes between BASE and FRAME RULES) |
+| --- | --- | --- | --- | --- | --- |
+| 16 | `alor-roshnai` | আলোর রোশনাই | 3 | black | Night of pandal light art: glowing LED gates, chandeliers, fairy-light tunnels and peacock light installations over a dark street, warm bokeh. Three empty frames stacked in a zigzag down the middle, each with a thin gold border and a small brass clip. Marigold strings hang at the top corners. Bengali text in gold at the bottom: "আলোর রোশনাই". |
+| 17 | `thakur-boron` | ঠাকুর বরণ | 2 | beige | Married women doing boron on Dashami, shown only as hands and sarees: brass boron dala with a diya, paan leaves, sweets and sindoor, red-bordered white sarees, red bangles. Two empty frames: a tall one on the left with a red saree-print border, and a smaller polaroid lower right held by washi tape. Bengali text on a torn tag: "ঠাকুর বরণ". |
+| 18 | `chhotobelar-pujo` | ছোটবেলার পুজো | 4 | beige | Childhood Pujo memories: a toy cap gun and paper caps, balloons, a giant wheel at a fair, cotton candy, a tin toy, new shoes in a box, a red ribbon. Four empty frames in a playful scattered 2x2, each a polaroid with a different coloured washi tape. Bengali text on a school-notebook scrap: "ছোটবেলার পুজো". |
+| 19 | `pujor-kenakata` | পুজোর কেনাকাটা | 3 | beige | Pujo shopping: paper shopping bags, new sarees folded in tissue, a kurta on a hanger, a shoe box, price tags, a handwritten shopping list (unreadable), a tailor's measuring tape. Three empty frames: a big one top-centre and two below, each like a price-tagged photo card. Bengali text on a price tag: "পুজোর কেনাকাটা". |
+| 20 | `mahishasuramardini` | মহিষাসুরমর্দিনী | 1 | black | Dramatic dawn of Mahalaya: a grand silhouette of Maa Durga on her lion with weapons raised (respectful, painterly, no gore), rays of golden light through clouds, a vintage radio glowing in a corner. One large ornate gold frame in the centre. Bengali text in gold calligraphy at the top: "মহিষাসুরমর্দিনী". |
+| 21 | `ghater-sondhya` | ঘাটের সন্ধ্যা | 2 | black | Evening aarti at a Ganga ghat: big brass lamps with flames, priests' raised hands in silhouette, smoke, floating diyas and marigolds on the dark river, a faint Howrah Bridge sketch. Two empty frames stacked on the right half with thin gold borders. Bengali text on a torn paper: "ঘাটের সন্ধ্যা". |
+| 22 | `pujabarshiki` | পুজোবার্ষিকী | 3 | beige | The Pujo-annual magazines: a stack of colourful Bengali Sharodiya magazine covers (no real brand names, small unreadable print), reading glasses, a cup of tea, a bookmark, a desk lamp. Three empty frames placed like magazine pages, one large and two smaller, each with a paper clip. Bengali text on the top magazine cover: "শারদীয়া". |
+| 23 | `pujor-adda` | পুজোর আড্ডা | 4 | beige | Para adda: tea in clay bhaars, telebhaja in newspaper cones, a carrom board corner, a transistor radio, a plastic chair, friends' hands raising cups (hands only). Four empty frames in a 2x2 grid like snapshots pinned to a cork board with pins. Bengali text on a torn tag: "পুজোর আড্ডা". |
+| 24 | `nabamir-raat` | নবমীর রাত | 2 | black | The bittersweet night before Dashami: an empty pandal at 2 am, string lights, a last dhunuchi smoke, a sleepy dhaki in silhouette, petals on the floor. Two empty frames: a tall polaroid left (tilted slightly left) and another right (tilted slightly right), on a rope with pegs. Bengali text on a torn paper: "নবমীর রাত". |
+| 25 | `chokkhudan` | চক্ষুদান | 1 | beige | Chokkhu daan, the eye-painting ritual: an artist's hand with a fine brush painting the eyes of a clay Durga idol (the idol's face to one side), paint bowls, brushes, straw. One large deckle-edged frame in the centre with a brass clip. Bengali text on a small torn tag: "চক্ষুদান". |
+| 26 | `shiuli-bhor` | শিউলি ভোর | 3 | beige | Dawn under a shiuli tree: a carpet of fallen shiuli flowers on wet grass, dew drops, soft pink morning light, a brass plate collecting flowers, a sparrow. Three empty frames hanging from a branch with jute string. Bengali text on a torn paper strip: "শিউলি ভোর". |
+| 27 | `theme-pandal` | থিম প্যান্ডেল | 4 | black | Modern theme pandals at night: terracotta panels, jute and bamboo art walls, a giant clay lantern, sculpted faces, dramatic coloured lights. Four empty frames in a staggered vertical column, each framed like a gallery exhibit with a small brass plaque (no text on the plaques). Bengali text on a torn tag: "থিম প্যান্ডেল". |
+| 28 | `pujor-gaan` | পুজোর গান | 2 | beige | Pujo songs: vinyl records in paper sleeves, a gramophone, cassette tapes, a songbook, musical notes drawn in ink, a harmonium corner. Two empty frames shaped like square record sleeves, one large top-left and one smaller lower right. Bengali text on a record label: "পুজোর গান". |
+| 29 | `kojagori` | কোজাগরী লক্ষ্মী | 2 | beige | Kojagori Lakshmi Puja on the full-moon night after Dashami: white alpona with Lakshmi's footprints on a red floor, paddy sheaves, a brass ghot, an owl, the full moon in the corner, small diyas. Two empty frames with a white alpona border. Bengali text on a torn tag: "কোজাগরী". |
+| 30 | `bijoya` | বিজয়ার মিষ্টিমুখ | 3 | beige | Bijoya greetings: a box of sweets, nimki and narkel naru on a plate, a handwritten greeting letter (unreadable), an envelope, elders' feet with alta and a child touching them for pranam (feet and hands only). Three empty frames, one big centre and two smaller corners, held with tape. Bengali text in red calligraphy: "শুভ বিজয়া". |
+| 31 | `tramer-janla` | ট্রামের জানলা | 3 | beige | Inside an old Kolkata tram: wooden seats, a brass handrail, a conductor's ticket punch, tram tickets, and three big tram windows in a row along the side. The three windows are the empty frames; pandal lights blur outside the edges. Bengali text on a tram ticket: "ট্রামে পুজো". |
+| 32 | `gramer-pujo` | গ্রামের পুজো | 4 | beige | Village Pujo in rural Bengal: a mud-and-thatch thakurdalan, paddy fields, a banyan tree, a pond with lotuses, a bullock-cart wheel, a clay idol in the open. Four empty frames on a hand-woven mat, each like an old photo with deckled edges. Bengali text on a torn paper: "গ্রামের পুজো". |
+| 33 | `retro-cinema` | রেট্রো সিনেমা | 5 | black | A retro Bengali cinema-poster collage from the 1970s: film reels, a film clapperboard, cinema ticket stubs, bold red and yellow poster typography shapes (no readable words), a spotlight. Five empty frames as film-strip frames running diagonally across, with sprocket holes. Bengali text in poster lettering: "পুজোর ছবি". |
+| 34 | `pujor-khobor` | পুজোর খবর | 4 | beige | A vintage Bengali newspaper front page about Pujo: columns of small unreadable print, a masthead area, decorative rules, coffee stain, folded edges, a pair of spectacles on top. Four empty photo boxes laid out like newspaper photos (one big lead photo, three smaller). Bengali headline in bold newspaper type: "পুজোর খবর". |
+| 35 | `laal-sada-polaroid` | লাল-সাদা পোলারয়েড | 5 | beige | A red-and-white laal paar saree hung as a backdrop, with five empty polaroids clipped to two strings of fairy lights (three on the top string, two on the lower), jasmine garlands, a brass bell, hibiscus. Bengali text on a small torn tag: "পুজোর স্মৃতি". |
+
+Photo-count mix across designs 16-35:
+
+| Photos | Designs |
+| --- | --- |
+| 1 | 2 |
+| 2 | 5 |
+| 3 | 6 |
+| 4 | 5 |
+| 5 | 2 |

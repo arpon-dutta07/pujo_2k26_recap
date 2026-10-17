@@ -71,6 +71,14 @@ Node 20+.
 3. চালাও `npm run templates`। স্ক্রিপ্ট (`scripts/build-templates.mjs`) ফাঁকা ফ্রেমগুলো খুঁজে ঠিক সেই আকারে কেটে নেয় (হেলানো ফ্রেম, আর ফ্রেমের ভেতরের লেখাও), তারপর `public/templates/`-এ স্বচ্ছ ছবি আর ছোট preview, আর `src/editor/templates.generated.json`-এ ফ্রেমের মাপ লেখে।
 4. `moodboard/debug/<id>__story.png` খুলে দেখো: প্রতিটা ফ্রেম গোলাপি আর লাল বাক্সে ঘেরা থাকা উচিত। ফ্রেমের ধারে কাগজের দাগ থেকে গেলে `templates.json`-এ `"tune": { "colour": 44, "reach": 14, "grow": 3 }` দিয়ে আবার চালাও।
 5. ঠিক থাকলে `src/editor/templates.ts`-এর `VERIFIED` তালিকায় `"<id>__story"` যোগ করো।
+
+### নতুন স্টিকার যোগ করা
+
+1. স্টিকারের ছবি বা একটা শিটে অনেকগুলো স্টিকার (পেছনে সমান সবুজ `#00FF00`, স্টিকারগুলোর মাঝে ফাঁক রেখে) রাখো `moodboard/stickers/<শিটের নাম>.png`-এ।
+2. চাইলে `moodboard/stickers.json`-এ দল আর নাম লেখো: `"<শিটের নাম>": { "group": "ফুল-পাতা", "names": ["জবা", "পদ্ম"] }` (বাঁ থেকে ডানে, উপরের সারি আগে)।
+3. চালাও `npm run stickers`। স্ক্রিপ্ট সবুজ সরিয়ে প্রতিটা স্টিকার আলাদা করে কেটে `public/stickers/`-এ রাখে, আর `moodboard/debug/stickers__<শিটের নাম>.png`-এ চেক-ছবি বানায়।
+
+ছবি বানানোর সব prompt আছে `moodboard/PROMPTS.md`-এ।
 - `prefers-reduced-motion` চালু থাকলে 3D দৃশ্য ধীরে চলে।
 
 ## জানা সীমাবদ্ধতা

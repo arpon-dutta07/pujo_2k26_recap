@@ -7,7 +7,8 @@
 > - Check `moodboard/debug/<id>__story.png`, then add the id to `VERIFIED` in `src/editor/templates.ts`.
 > - 8 moodboards are live. Stickers are 8 trimmed WebP files in `public/stickers/`, with drag and drop from the panel.
 > - The site link is no longer printed on pages.
-> - Still open: more moodboards (section 5.1 prompts), more stickers (section 5.2), and proper 4:5 post versions. The old ones were squashed story images and were removed.
+> - Still open: more moodboards and stickers, and proper 4:5 post versions. The old 4:5 ones were squashed story images and were removed.
+> - **All prompts and steps for new stickers and moodboards are now in `moodboard/PROMPTS.md`** (12 sticker sheets, designs 16-35; designs 1-15 stay in section 5.1 below). Sticker sheets go in `moodboard/stickers/`, then run `npm run stickers` (scripts/build-stickers.mjs splits a sheet into separate stickers).
 
 
 You are continuing work on this Vite + React 19 + TypeScript site. Read this whole file before you change anything. The owner speaks Bangla; all UI copy stays in Bangla.
