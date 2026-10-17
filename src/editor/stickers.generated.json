@@ -310,5 +310,53 @@
     "src": "/stickers/s14-pandal-6.webp",
     "w": 318,
     "h": 270
+  },
+  {
+    "id": "s15-mela-1",
+    "name": "নাগরদোলা",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-1.webp",
+    "w": 346,
+    "h": 394
+  },
+  {
+    "id": "s15-mela-2",
+    "name": "বেলুন",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-2.webp",
+    "w": 313,
+    "h": 433
+  },
+  {
+    "id": "s15-mela-3",
+    "name": "হাওয়াই মিঠাই",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-3.webp",
+    "w": 217,
+    "h": 412
+  },
+  {
+    "id": "s15-mela-4",
+    "name": "কাগজের চরকি",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-4.webp",
+    "w": 248,
+    "h": 421
+  },
+  {
+    "id": "s15-mela-5",
+    "name": "ক্যাপ বন্দুক",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-5.webp",
+    "w": 368,
+    "h": 276
+  },
+  {
+    "id": "s15-mela-6",
+    "name": "কৃষ্ণনগরের পুতুল",
+    "group": "পুজোর মেলা",
+    "src": "/stickers/s15-mela-6.webp",
+    "w": 219,
+    "h": 412
   }
 ]
