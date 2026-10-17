@@ -6,7 +6,7 @@ import { canvasToJpeg } from "../lib/image";
 import { ensureFonts, FONT } from "../lib/render/draw";
 import type { ExportFile } from "../lib/share";
 import type { Photo } from "../lib/types";
-import { deg, place, slotPath } from "./geometry";
+import { byZ, deg, place, slotPath } from "./geometry";
 import { drawSticker, getStickerImage, stickerById } from "./stickers";
 import { templateById } from "./templates";
 import { FORMATS, type FontKey, type Format, type Page, type Project, type TemplateDef, type TextItem } from "./types";
@@ -138,13 +138,20 @@ export async function renderPage(
   ctx.fillStyle = "#e9e0cd";
   ctx.fillRect(0, 0, W, H);
   const layout = def.layout(W, H);
-  for (const s of layout.slots) {
+  for (const s of byZ(layout.slots)) {
     const f = page.fills[s.id];
     const p = f ? photo(f.photoId) : undefined;
     if (!f || !p) continue;
     const pl = place(s.w, s.h, p.width / p.height, f);
     const bmp = await decodeAt(p, pl.w);
     ctx.save();
+    if (s.clip?.length) {
+      // Only inside this window's own outline.
+      ctx.beginPath();
+      s.clip.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath();
+      ctx.clip();
+    }
     ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
     ctx.rotate(deg(s.rotate ?? 0));
     ctx.translate(-s.w / 2, -s.h / 2);

@@ -164,6 +164,68 @@ function rotatedBox(edge) {
   return { cx, cy, w: best.u1 - best.u0 + 1, h: best.v1 - best.v0 + 1, rotate };
 }
 
+// ---------- window outlines ----------
+
+// Convex hull (monotone chain) of [x, y] points.
+function convexHull(points) {
+  const pts = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+    lower.push(p);
+  }
+  const upper = [];
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+    upper.push(p);
+  }
+  return lower.slice(0, -1).concat(upper.slice(0, -1));
+}
+
+// Drops hull corners that sit within `eps` px of the line through their neighbours.
+function simplify(poly, eps) {
+  let out = poly;
+  let changed = true;
+  while (changed && out.length > 4) {
+    changed = false;
+    for (let i = 0; i < out.length && out.length > 4; i++) {
+      const a = out[(i - 1 + out.length) % out.length];
+      const b = out[i];
+      const c = out[(i + 1) % out.length];
+      const len = Math.hypot(c[0] - a[0], c[1] - a[1]) || 1;
+      const d = Math.abs((c[0] - a[0]) * (a[1] - b[1]) - (a[0] - b[0]) * (c[1] - a[1])) / len;
+      if (d < eps) {
+        out = out.slice(0, i).concat(out.slice(i + 1));
+        changed = true;
+        i--;
+      }
+    }
+  }
+  return out;
+}
+
+// Pushes every corner `by` px away from the centre, so the clip never shaves the window.
+function expand(poly, by) {
+  const cx = poly.reduce((a, p) => a + p[0], 0) / poly.length;
+  const cy = poly.reduce((a, p) => a + p[1], 0) / poly.length;
+  return poly.map(([x, y]) => {
+    const d = Math.hypot(x - cx, y - cy) || 1;
+    return [Math.round(x + ((x - cx) / d) * by), Math.round(y + ((y - cy) / d) * by)];
+  });
+}
+
+function insidePoly(poly, x, y) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
 // ---------- one template ----------
 
 async function build(id, file, format) {
@@ -321,7 +383,14 @@ async function build(id, file, format) {
         if (isEdge) edge.push([X0 + x, Y0 + y]);
       }
     const r = rotatedBox(edge);
+    // Each photo is clipped to this outline, so a photo never shows inside a
+    // neighbouring window where two frames overlap in the art.
+    const clip = expand(simplify(convexHull(edge), 1), 4);
+    const samples = [];
+    for (let y = 0; y < rh; y += 6) for (let x = 0; x < rw; x += 6) if (grown[y * rw + x]) samples.push([X0 + x, Y0 + y]);
     slots.push({
+      clip,
+      samples,
       x: Math.round(r.cx - r.w / 2 - MARGIN),
       y: Math.round(r.cy - r.h / 2 - MARGIN),
       w: Math.round(r.w + MARGIN * 2),
@@ -367,6 +436,29 @@ async function build(id, file, format) {
   }
   slots.splice(0, slots.length, ...rows.flatMap((r) => r.items.sort((a, b) => a.x - b.x)));
   const biggest = slots.reduce((m, s) => (s.area > m.area ? s : m), slots[0]);
+
+  // Stacking: if window B pokes into A's outline, B's photo is drawn after A's.
+  const after = slots.map(() => new Set());
+  slots.forEach((a, i) =>
+    slots.forEach((b, j) => {
+      if (i !== j && b.samples.filter(([x, y]) => insidePoly(a.clip, x, y)).length > 3) after[j].add(i);
+    }),
+  );
+  const z = new Array(slots.length).fill(-1);
+  for (let level = 0, placed = 0; placed < slots.length; level++) {
+    const ready = slots.map((_, j) => j).filter((j) => z[j] < 0 && [...after[j]].every((i) => z[i] >= 0 && z[i] < level));
+    const pick = ready.length ? ready : [z.findIndex((v) => v < 0)]; // a cycle: just place one
+    for (const j of pick) z[j] = level;
+    placed += pick.length;
+  }
+  let clash = 0;
+  slots.forEach((b, j) =>
+    slots.forEach((a, i) => {
+      if (i !== j && z[i] > z[j]) clash += b.samples.filter(([x, y]) => insidePoly(a.clip, x, y)).length;
+    }),
+  );
+  if (clash) console.log(`WARN ${id}__${format}: ${clash * 36} px of a window would show a neighbour's photo`);
+
   const outSlots = slots.map((s, i) => ({
     id: `s${i}`,
     x: s.x,
@@ -374,6 +466,8 @@ async function build(id, file, format) {
     w: s.w,
     h: s.h,
     ...(s.rotate ? { rotate: s.rotate } : {}),
+    clip: s.clip,
+    z: z[i],
     role: s === biggest ? "hero" : "any",
   }));
 

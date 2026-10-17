@@ -22,6 +22,10 @@ export type SlotDef = {
   shape?: SlotShape;
   radius?: number;
   rotate?: number; // degrees, around the slot centre
+  // The window's real outline in export px: the photo is clipped to it, so it
+  // never shows inside a neighbouring window where frames overlap.
+  clip?: Array<[number, number]>;
+  z?: number; // drawing order: windows on top in the art get a higher z
   // Autofill hint: the biggest slot gets the best photo, round ones like thakur.
   role?: "hero" | "people" | "thakur" | "any";
 };

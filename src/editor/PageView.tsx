@@ -4,7 +4,7 @@
 import { memo, useEffect, useState, type CSSProperties } from "react";
 import { CloseIcon, PlusIcon, RotateIcon } from "../components/Icons";
 import type { Photo } from "../lib/types";
-import { place, slotRadiusCss } from "./geometry";
+import { byZ, place, slotClipCss, slotRadiusCss } from "./geometry";
 import { usePhotoSrc } from "./photos";
 import { contrastInk, FONTS, LINE_HEIGHT, PAPER, pageSize, templateLayers, textOf, type Layers } from "./render";
 import { StickerSvg } from "./StickerSvg";
@@ -65,6 +65,7 @@ const SlotView = memo(function SlotView({
         height: pct(slot.h, H),
         borderRadius: slotRadiusCss(slot),
         rotate: slot.rotate ? `${slot.rotate}deg` : undefined,
+        clipPath: slotClipCss(slot),
       }}
     >
       {pl && src ? (
@@ -202,7 +203,7 @@ export const PageView = memo(function PageView({
   return (
     <div className="pv" data-page={page.id} style={{ aspectRatio: `${W} / ${H}` }}>
       {layers?.bg ? <img className="pv-layer" src={layers.bg} alt="" draggable={false} /> : null}
-      {layout.slots.map((s) => {
+      {byZ(layout.slots).map((s) => {
         const fill = live?.kind === "slot" && live.id === s.id ? live.fill : page.fills[s.id] ?? null;
         return (
           <SlotView

@@ -49,6 +49,27 @@ export function slotRadiusCss(s: SlotDef): string | undefined {
 
 export const deg = (d: number) => (d * Math.PI) / 180;
 
+// The window outline as a CSS clip-path for the slot element, which is
+// positioned at (x, y, w, h) and turned by `rotate` around its centre.
+export function slotClipCss(s: SlotDef): string | undefined {
+  if (!s.clip?.length) return undefined;
+  const cx = s.x + s.w / 2;
+  const cy = s.y + s.h / 2;
+  const a = -deg(s.rotate ?? 0);
+  const pts = s.clip.map(([px, py]) => {
+    const dx = px - cx;
+    const dy = py - cy;
+    const lx = dx * Math.cos(a) - dy * Math.sin(a) + s.w / 2;
+    const ly = dx * Math.sin(a) + dy * Math.cos(a) + s.h / 2;
+    return `${((lx / s.w) * 100).toFixed(2)}% ${((ly / s.h) * 100).toFixed(2)}%`;
+  });
+  return `polygon(${pts.join(", ")})`;
+}
+
+// Slots in drawing order (lowest z first; ties keep their reading order).
+export const byZ = <T extends { z?: number }>(slots: T[]) =>
+  slots.map((s, i) => ({ s, i })).sort((a, b) => (a.s.z ?? 0) - (b.s.z ?? 0) || a.i - b.i).map(({ s }) => s);
+
 // Rotates a screen-space drag into a rotated slot's own axes.
 export function unrotate(dx: number, dy: number, degrees = 0) {
   if (!degrees) return { dx, dy };
