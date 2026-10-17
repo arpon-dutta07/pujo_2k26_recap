@@ -4,6 +4,8 @@ import { Headline } from "../components/Headline";
 import { CheckIcon, FlameArt, FrameArt, LockIcon, PhotosIcon, SieveArt } from "../components/Icons";
 import { TiltCard } from "../components/TiltCard";
 import { LIMITS } from "../config";
+import { STICKERS } from "../editor/stickers";
+import { templatesFor } from "../editor/templates";
 import { bnNum } from "../lib/bn";
 
 const rise = {
@@ -27,11 +29,34 @@ const STEPS = [
   },
   {
     n: "৩",
-    title: "Instagram-রেডি",
-    body: "লাল পাড় ফ্রেমে carousel, তোমার পুজোর মজার হিসেব, আর ক্যাপশন। এক ট্যাপে শেয়ার।",
+    title: "মুডবোর্ডে সাজাও",
+    body: "AI-র বাছা ছবি পুজোর মুডবোর্ডে নিজে থেকে বসে যায়। পছন্দ না হলে নিজের ছবি দাও, স্টিকার লাগাও, তারপর এক ট্যাপে শেয়ার।",
     Art: FrameArt,
   },
 ];
+
+// The live moodboards, with how many photos each one holds.
+const MOODBOARDS = templatesFor("story").map((t) => ({
+  id: t.id,
+  name: t.name,
+  thumb: t.thumbSrc?.story ?? "",
+  photos: t.layout(1080, 1920).slots.length,
+}));
+
+// Tilts for the sticker wall, so it looks stuck on by hand.
+const TILTS = [-8, 6, -3, 9, 4, -7, 7, -4];
+
+// Small lotus between a pair of gold hairlines, on top of every section.
+function Ornament() {
+  return (
+    <div className="ornament" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round">
+        <path d="M16 6c3.2 4 4.4 7.2 4.4 10.2a4.4 4.4 0 0 1-8.8 0C11.6 13.2 12.8 10 16 6z" />
+        <path d="M16 26c-5.2 0-9.2-3-10.4-7.4 3.4-.2 6.4 1.2 8.6 3.6M16 26c5.2 0 9.2-3 10.4-7.4-3.4-.2-6.4 1.2-8.6 3.6" />
+      </svg>
+    </div>
+  );
+}
 
 export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
   const input = useRef<HTMLInputElement>(null);
@@ -56,7 +81,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75, duration: 0.6 }}
           >
-            সব ছবি একবারে দাও। সেরাগুলো বেছে Instagram-রেডি carousel আর তোমার পুজোর হিসেব বানিয়ে দেব, মিনিটখানেকের মধ্যে।
+            সব ছবি একবারে দাও। সেরাগুলো বেছে পুজোর মুডবোর্ডে সাজিয়ে দেব, সঙ্গে তোমার পুজোর হিসেব। মিনিটখানেকের মধ্যে।
           </motion.p>
           <motion.div
             className="hero-actions"
@@ -103,6 +128,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
       </section>
 
       <section className="band band-dark">
+        <Ornament />
         <motion.h2 className="section-title" {...rise}>
           তিন ধাপ, মিনিটখানেক
         </motion.h2>
@@ -130,6 +156,78 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
       </section>
 
       <section className="band">
+        <Ornament />
+        <div className="section-head">
+          <motion.h2 className="section-title" {...rise}>
+            পুজোর মুডবোর্ড
+          </motion.h2>
+          <motion.p className="section-sub" {...rise}>
+            বাংলার পুজো মাথায় রেখে বানানো টেমপ্লেট: ঠাকুরের মুখ, লাল পাড়, ঢাক, শিউলি, পুরনো কলকাতা। ফাঁকা ফ্রেমে তোমার ছবি ঠিক মাপে বসে যায়, হেলানো পোলারয়েডেও।
+          </motion.p>
+        </div>
+        {/* One trigger for the whole strip: the cards wipe up out of the black one after another. */}
+        <motion.div className="mood-strip" initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.25 }}>
+          {MOODBOARDS.map((t, i) => (
+            <motion.figure
+              key={t.id}
+              className="mood-card"
+              custom={i}
+              variants={{
+                hidden: { clipPath: "inset(100% 0% 0% 0%)", y: 24 },
+                show: (k: number) => ({
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  y: 0,
+                  transition: { duration: 0.8, delay: Math.min(k, 5) * 0.08, ease: [0.22, 1, 0.36, 1] },
+                }),
+              }}
+            >
+              <img src={t.thumb} alt={t.name} loading="lazy" decoding="async" />
+              <figcaption>
+                <b>{t.name}</b>
+                <span>{bnNum(t.photos)}টা ছবি</span>
+              </figcaption>
+            </motion.figure>
+          ))}
+        </motion.div>
+      </section>
+
+      <section className="band band-dark">
+        <Ornament />
+        <div className="split">
+          <div>
+            <motion.h2 className="section-title" {...rise}>
+              স্টিকারের ঝুলি
+            </motion.h2>
+            <motion.p className="section-sub" {...rise}>
+              ঢাক, শাঁখ, জবা, ধুনুচি, মায়ের চোখ, মহালয়ার রেডিও। টেনে এনে পাতার যেখানে খুশি বসাও, ঘোরাও, বড়-ছোট করো। সঙ্গে আছে বাংলা লেখা-স্টিকার।
+            </motion.p>
+          </div>
+          <motion.div className="sticker-wall" initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }}>
+            {STICKERS.map((st, i) => (
+              <motion.img
+                key={st.id}
+                src={st.src}
+                alt={st.name}
+                decoding="async"
+                style={{ rotate: TILTS[i % TILTS.length] }}
+                custom={i}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.6, y: 24 },
+                  show: (k: number) => ({
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                    transition: { type: "spring", damping: 15, stiffness: 170, delay: k * 0.05 },
+                  }),
+                }}
+              />
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="band">
+        <Ornament />
         <div className="split">
           <div>
             <motion.h2 className="section-title" {...rise}>
@@ -175,6 +273,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
       </section>
 
       <section className="band band-dark">
+        <Ornament />
         <div className="split">
           <div>
             <motion.h2 className="section-title" {...rise}>
