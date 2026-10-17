@@ -358,5 +358,53 @@
     "src": "/stickers/s15-mela-6.webp",
     "w": 219,
     "h": 412
+  },
+  {
+    "id": "s16-bonedi-bari-1",
+    "name": "ঠাকুরদালান",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-1.webp",
+    "w": 432,
+    "h": 360
+  },
+  {
+    "id": "s16-bonedi-bari-2",
+    "name": "দেওয়াল ঘড়ি",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-2.webp",
+    "w": 213,
+    "h": 356
+  },
+  {
+    "id": "s16-bonedi-bari-3",
+    "name": "আরাম কেদারা",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-3.webp",
+    "w": 267,
+    "h": 347
+  },
+  {
+    "id": "s16-bonedi-bari-4",
+    "name": "রঙিন কাচের জানলা",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-4.webp",
+    "w": 352,
+    "h": 414
+  },
+  {
+    "id": "s16-bonedi-bari-5",
+    "name": "পানের বাটা",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-5.webp",
+    "w": 333,
+    "h": 297
+  },
+  {
+    "id": "s16-bonedi-bari-6",
+    "name": "হ্যারিকেন",
+    "group": "বনেদি বাড়ি",
+    "src": "/stickers/s16-bonedi-bari-6.webp",
+    "w": 219,
+    "h": 416
   }
 ]
