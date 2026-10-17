@@ -1,1 +1,74 @@
-[]
+[
+  {
+    "id": "s01-pujor-jinish-1",
+    "name": "শাঁখ",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-1.webp",
+    "w": 295,
+    "h": 194
+  },
+  {
+    "id": "s01-pujor-jinish-2",
+    "name": "ঘণ্টা",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-2.webp",
+    "w": 234,
+    "h": 302
+  },
+  {
+    "id": "s01-pujor-jinish-3",
+    "name": "পঞ্চপ্রদীপ",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-3.webp",
+    "w": 277,
+    "h": 244
+  },
+  {
+    "id": "s01-pujor-jinish-4",
+    "name": "ধুনুচি",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-4.webp",
+    "w": 233,
+    "h": 358
+  },
+  {
+    "id": "s01-pujor-jinish-5",
+    "name": "কোশাকুশি",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-5.webp",
+    "w": 268,
+    "h": 235
+  },
+  {
+    "id": "s01-pujor-jinish-6",
+    "name": "মঙ্গলঘট",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-6.webp",
+    "w": 247,
+    "h": 337
+  },
+  {
+    "id": "s01-pujor-jinish-7",
+    "name": "চামর",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-7.webp",
+    "w": 239,
+    "h": 297
+  },
+  {
+    "id": "s01-pujor-jinish-8",
+    "name": "সিঁদুর কৌটো",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-8.webp",
+    "w": 266,
+    "h": 271
+  },
+  {
+    "id": "s01-pujor-jinish-9",
+    "name": "প্রদীপের থালা",
+    "group": "পুজোর জিনিস",
+    "src": "/stickers/s01-pujor-jinish-9.webp",
+    "w": 327,
+    "h": 213
+  }
+]
