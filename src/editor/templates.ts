@@ -27,6 +27,20 @@ const VERIFIED = new Set([
   "vintage-memory__story",
   "sharodiya-kolkata__story",
   "pujo-collage__story",
+  "mayer-anchol__story",
+  "mahishasuramardini__story",
+  "laal-sada-polaroid__story",
+  "pujabarshiki__story",
+  "pujor-kenakata__story",
+  "bijoya__story",
+  "pujor-adda__story",
+  "chhotobelar-pujo__story",
+  "chhotobelar-mela__story",
+  "ghater-sondhya__story",
+  "nabamir-raat__story",
+  "theme-pandal__story",
+  "retro-cinema__story",
+  "pujor-khobor__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));
@@ -57,6 +71,7 @@ export const TEMPLATES: TemplateDef[] = Array.from(byId.values()).map((g) => ({
         y: Math.round(s.y * ky),
         w: Math.round(s.w * kx),
         h: Math.round(s.h * ky),
+        clip: s.clip?.map(([x, y]) => [x * kx, y * ky] as [number, number]),
       })),
     };
   },
