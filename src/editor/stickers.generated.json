@@ -454,5 +454,53 @@
     "src": "/stickers/s17-nakshha-6.webp",
     "w": 508,
     "h": 199
+  },
+  {
+    "id": "s18-lekha-1",
+    "name": "জয় মা দুর্গা",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-1.webp",
+    "w": 586,
+    "h": 233
+  },
+  {
+    "id": "s18-lekha-2",
+    "name": "দুগ্গা দুগ্গা",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-2.webp",
+    "w": 518,
+    "h": 518
+  },
+  {
+    "id": "s18-lekha-3",
+    "name": "মা আসছেন",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-3.webp",
+    "w": 456,
+    "h": 476
+  },
+  {
+    "id": "s18-lekha-4",
+    "name": "আসছে বছর আবার হবে",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-4.webp",
+    "w": 506,
+    "h": 356
+  },
+  {
+    "id": "s18-lekha-5",
+    "name": "ঢাকের তালে",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-5.webp",
+    "w": 466,
+    "h": 466
+  },
+  {
+    "id": "s18-lekha-6",
+    "name": "শুভ দুর্গাপুজো",
+    "group": "লেখা",
+    "src": "/stickers/s18-lekha-6.webp",
+    "w": 486,
+    "h": 346
   }
 ]
