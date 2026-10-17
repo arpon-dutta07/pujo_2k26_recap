@@ -46,7 +46,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75, duration: 0.6 }}
           >
-            সব ছবি একবারে দাও। সেরাগুলো বেছে পুজোর মুডবোর্ডে সাজিয়ে দেব, সঙ্গে তোমার পুজোর হিসেব। মিনিটখানেকের মধ্যে।
+            সব একসাথে দিয়ে দাও। ভালোগুলো বেছে মুডবোর্ডে সাজিয়ে দেব, সঙ্গে একটা পুজোর হিসেব।
           </motion.p>
           <motion.div
             className="hero-actions"
@@ -61,9 +61,9 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
               whileTap={{ scale: 0.97 }}
             >
               <PhotosIcon />
-              পুজোর ছবি বাছো
+              ছবি সিলেক্ট করো
             </motion.button>
-            <span className="drop-hint">অথবা এখানে টেনে এনে ছেড়ে দাও</span>
+            <span className="drop-hint">বা এখানে drag করে ছেড়ে দাও</span>
           </motion.div>
           <motion.div
             className="privacy-line"
@@ -72,10 +72,10 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
             transition={{ delay: 1.1 }}
           >
             <LockIcon />
-            ছবি তোমার ফোন থেকে কোথাও যায় না। সব কাজ এখানেই হয়।
+            ছবি তোমার ফোনেই থাকে, কোথাও upload হয় না।
           </motion.div>
           <motion.div className="scroll-cue" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>
-            <span /> কীভাবে কাজ করে
+            <span /> নিচে দেখো, কীভাবে হয়
           </motion.div>
         </div>
         <input
@@ -97,9 +97,9 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
           <Garland />
           <div className="home-wrap">
             <motion.h2 className="home-title" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              সব দাও, সেরাটা পাও
+              ৩০০ থেকে সেরা ১২
             </motion.h2>
-            <p className="home-sub">তিন ধাপ, মিনিটখানেক।</p>
+            <p className="home-sub">ঝাপসা, একই পোজের দশটা, চোখ বন্ধ, সব বাদ।</p>
             <Sieve />
           </div>
         </section>
@@ -111,7 +111,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
 
       <footer className="footer">
         <span>পুজোর ঝুলি · শারদীয়া ২০২৬</span>
-        <span>মুখ চেনে Google MediaPipe, চলে তোমার ফোনেই</span>
+        <span>Face detection: Google MediaPipe, চলে ফোনেই</span>
         {PHOTOGRAPHERS.length > 0 && (
           <p className="footer-credits">
             {"এই পাতার পুজো ২০২৬-এর ছবি: "}

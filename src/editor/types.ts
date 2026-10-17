@@ -5,8 +5,8 @@
 export type Format = "post" | "story";
 
 export const FORMATS: Record<Format, { w: number; h: number; label: string; short: string }> = {
-  post: { w: 1080, h: 1350, label: "পোস্ট", short: "৪:৫" },
-  story: { w: 1080, h: 1920, label: "স্টোরি", short: "৯:১৬" },
+  post: { w: 1080, h: 1350, label: "Post", short: "৪:৫" },
+  story: { w: 1080, h: 1920, label: "Story", short: "৯:১৬" },
 };
 
 export type FontKey = "display" | "serif" | "body";

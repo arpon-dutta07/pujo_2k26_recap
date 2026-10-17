@@ -164,7 +164,7 @@ export function RecapPlayer({ slides, start = 0, onClose }: { slides: Slide[]; s
 
   const deliver = async (files: ExportFile[]) => {
     if (canShareFiles(files)) {
-      const r = await shareFiles(files, "এবারের পুজোর হিসেব");
+      const r = await shareFiles(files);
       if (r !== "failed") return;
     }
     if (files.length === 1) downloadBlob(files[0].blob, files[0].name);
@@ -172,7 +172,7 @@ export function RecapPlayer({ slides, start = 0, onClose }: { slides: Slide[]; s
   };
 
   const shareOne = async () => {
-    setBusy("ছবি বানাচ্ছি…");
+    setBusy("একটু দাঁড়াও…");
     try {
       const blob = await images.render(i);
       await deliver([{ name: fileName(i), blob }]);
@@ -182,7 +182,7 @@ export function RecapPlayer({ slides, start = 0, onClose }: { slides: Slide[]; s
   };
 
   const shareAll = async () => {
-    setBusy("সব স্লাইড বানাচ্ছি…");
+    setBusy("সব স্লাইড রেডি করছি…");
     try {
       const blobs = await Promise.all(slides.map((_, k) => images.render(k)));
       await deliver(blobs.map((blob, k) => ({ name: fileName(k), blob })));
@@ -247,14 +247,14 @@ export function RecapPlayer({ slides, start = 0, onClose }: { slides: Slide[]; s
         <div className="rc-actions" onPointerDown={keep} onPointerUp={keep}>
           {ended && (
             <motion.button className="rc-btn rc-btn-ghost" onClick={() => go(0)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <RestartIcon /> আবার দেখো
+              <RestartIcon /> Replay
             </motion.button>
           )}
           <button className="rc-btn" onClick={shareOne} disabled={!!busy}>
-            <ShareIcon /> এটা শেয়ার করো
+            <ShareIcon /> Share
           </button>
           <button className="rc-btn rc-btn-ghost" onClick={shareAll} disabled={!!busy}>
-            সব {bnNum(slides.length)}টা
+            Share all
           </button>
         </div>
 

@@ -14,15 +14,15 @@ export type LiveThumb = { id: string; seq: number; url: string; status: PhotoSta
 export type LiveFeed = { recent: LiveThumb[]; days: Partial<Record<string, number>> };
 
 const LINES: Record<AnalysisPhase, string[]> = {
-  reading: ["ছবিগুলো ঝুলিতে ভরছি…", "মুখ চেনার মডেল নামছে…"],
+  reading: ["ছবিগুলো খুলছি…", "Face model নামছে, একটু দাঁড়াও…"],
   looking: [
-    "তারিখ দেখে দিন ধরে ভাগ করছি…",
-    "একই পোজের দশটা ছবি থেকে একটা রাখছি…",
-    "ঝাপসা ছবিগুলো আগুনে দিচ্ছি…",
-    "কার চোখ বন্ধ, দেখছি…",
-    "কে সবচেয়ে সুন্দর হেসেছে, মাপছি…",
+    "কোনটা কোন দিনের, দেখছি…",
+    "একই পোজের দশটা থেকে একটা রাখছি…",
+    "ঝাপসাগুলো আগুনে যাচ্ছে…",
+    "কার চোখ বন্ধ, খুঁজছি…",
+    "কে সবচেয়ে ভালো হেসেছে, দেখছি…",
   ],
-  faces: ["মুখ চেনার মডেল কাজ করছে…", "গ্রুপ ছবিতে গুনছি কজন ছিল…"],
+  faces: ["মুখগুলো দেখছি…", "গ্রুপ ছবিতে মাথা গুনছি…"],
   choosing: ["প্রতিদিনের সেরাগুলো বাছছি…"],
   done: ["হয়ে গেছে!"],
 };
@@ -147,7 +147,7 @@ export function Processing({
 
         <div className="process-foot">
           <p className="live-hint">
-            {pinned.size ? `তোমার পছন্দের ${bnNum(pinned.size)}টা থাকবেই` : "ভালো লাগলে ছবিতে ছোঁও, ওটা বাদ যাবে না"}
+            {pinned.size ? `তোমার পছন্দের ${bnNum(pinned.size)}টা থাকবেই` : "যেটা রাখতেই হবে, ট্যাপ করে দাও"}
           </p>
           <div className="stats">
             <Stat value={progress?.duplicates ?? 0} label="একই পোজ" />

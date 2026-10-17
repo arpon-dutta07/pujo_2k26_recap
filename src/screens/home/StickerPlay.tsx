@@ -33,9 +33,9 @@ export function StickerPlay() {
       <div className="home-wrap play">
         <div className="play-copy">
           <motion.h2 className="home-title" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            স্টিকার টেনে বসাও
+            স্টিকার লাগাও
           </motion.h2>
-          <p className="home-sub">ঢাক, শাঁখ, জবা, মায়ের চোখ… {bnNum(STICKERS.length)}টা পুজোর স্টিকার। যেখানে খুশি বসাও।</p>
+          <p className="home-sub">ঢাক, শাঁখ, জবা, মায়ের চোখ, আরও অনেক। মোট {bnNum(STICKERS.length)}টা, যেখানে খুশি বসাও।</p>
           <button
             className="pill-btn pill-dark"
             onClick={() => {
@@ -44,7 +44,7 @@ export function StickerPlay() {
             }}
           >
             <RestartIcon />
-            আবার ছড়াও
+            Reset
           </button>
         </div>
 
@@ -74,7 +74,7 @@ export function StickerPlay() {
           ))}
           <motion.span className="play-hint" animate={{ opacity: touched ? 0 : 1, y: touched ? 8 : 0 }}>
             <DragIcon />
-            টেনে দেখো
+            Drag করে দেখো
           </motion.span>
         </div>
       </div>

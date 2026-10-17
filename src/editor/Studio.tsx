@@ -57,10 +57,10 @@ type Gesture = {
 };
 
 const TOOLS: Array<[Tool, string, typeof LayoutIcon]> = [
-  ["templates", "টেমপ্লেট", LayoutIcon],
-  ["photos", "ছবি", PhotosIcon],
-  ["stickers", "স্টিকার", StickerIcon],
-  ["text", "লেখা", TextIcon],
+  ["templates", "Templates", LayoutIcon],
+  ["photos", "Photos", PhotosIcon],
+  ["stickers", "Stickers", StickerIcon],
+  ["text", "Text", TextIcon],
 ];
 
 function useWide() {
@@ -91,7 +91,6 @@ export function Studio({
   mine,
   rest,
   onAddPhotos,
-  caption,
   startPage = 0,
   onClose,
 }: {
@@ -104,7 +103,6 @@ export function Studio({
   mine: Photo[];
   rest: Photo[];
   onAddPhotos: (photos: Photo[]) => void;
-  caption?: string;
   startPage?: number;
   onClose: () => void;
 }) {
@@ -480,7 +478,7 @@ export function Studio({
     const slots = layoutOf(targetPage.template, format).layout.slots;
     const slotId = sel?.kind === "slot" && selPage ? sel.id : slots.find((s) => !targetPage.fills[s.id])?.id;
     if (!slotId) {
-      say("এই পাতায় ফাঁকা জায়গা নেই। যে ছবিটা বদলাবে, আগে সেটায় ট্যাপ করো।");
+      say("এই পাতায় খালি ঘর নেই। যে ছবিটা বদলাবে, আগে সেটায় ট্যাপ করো।");
       return;
     }
     const fills = { ...targetPage.fills, [slotId]: fillFor(p) };
@@ -619,7 +617,7 @@ export function Studio({
     if (pages.length < 2) return;
     commit({ ...project, pages: pages.filter((p) => p.id !== page.id) });
     setSel(null);
-    say("পাতা মুছে দিলাম। ফেরাতে চাইলে পিছনের তীর চাপো।");
+    say("পাতা ডিলিট হল। Undo দিয়ে ফেরানো যাবে।");
   };
 
   const movePage = (dir: -1 | 1) => {
@@ -662,8 +660,8 @@ export function Studio({
   const slideCount = pages.reduce((n, p) => n + (templateById(p.template).span ?? 1), 0);
   const hint =
     sel?.kind === "slot"
-      ? "যে ছবিতে ট্যাপ করবে, সেটা বাছা জায়গায় বসবে।"
-      : "ট্যাপ করলে এই পাতার প্রথম ফাঁকা জায়গায় বসবে। আগে পাতার কোনো ছবিতে ট্যাপ করলে সেটা বদলাবে।";
+      ? "যে ছবিতে ট্যাপ করবে, সেটা ওই ঘরে বসবে।"
+      : "ট্যাপ করলে পাতার প্রথম খালি ঘরে বসবে। পাতার কোনো ছবি আগে সিলেক্ট করলে সেটা বদলাবে।";
 
   const photoPanel = (
     <PhotoPanel ai={ai} mine={mine} rest={rest} used={used} adding={adding} hint={hint} onPick={placePhoto} onFiles={addFiles} onAutofill={doAutofill} />
@@ -686,41 +684,41 @@ export function Studio({
       {sel.kind === "slot" && (
         <>
           <button type="button" onClick={() => openTool("photos")}>
-            <SwapIcon /> {selSlotFill ? "ছবি বদলাও" : "ছবি দাও"}
+            <SwapIcon /> {selSlotFill ? "Change photo" : "Add photo"}
           </button>
           {selSlotFill && (
             <>
               <button type="button" onClick={() => setFill(selPage.id, sel.id, fillFor(photo(selSlotFill.photoId)!))}>
-                <FitIcon /> ঠিক মাপে
+                <FitIcon /> Fit
               </button>
               <button type="button" onClick={() => setFill(selPage.id, sel.id, null)}>
-                <TrashIcon /> সরাও
+                <TrashIcon /> Remove
               </button>
             </>
           )}
-          {selSlotFill && <span className="ctx-tip">টেনে সরাও, দু আঙুলে বড় করো</span>}
+          {selSlotFill && <span className="ctx-tip">Drag করো, দু আঙুলে zoom</span>}
         </>
       )}
       {sel.kind !== "slot" && selItem && (
         <>
           {sel.kind === "text" && (
             <button type="button" onClick={() => openTool("text")}>
-              <EditIcon /> লেখা বদলাও
+              <EditIcon /> Edit text
             </button>
           )}
           {sel.kind === "sticker" && (
             <button type="button" onClick={() => patchSelected({ flip: !(selItem as StickerItem).flip })}>
-              <FlipIcon /> উল্টাও
+              <FlipIcon /> Flip
             </button>
           )}
           <button type="button" onClick={duplicateSelected}>
-            <CopyIcon /> কপি
+            <CopyIcon /> Copy
           </button>
           <button type="button" onClick={bringFront}>
-            <FrontIcon /> সামনে আনো
+            <FrontIcon /> Front
           </button>
           <button type="button" onClick={() => removeItem(selPage.id, sel.id)}>
-            <TrashIcon /> মুছে দাও
+            <TrashIcon /> Delete
           </button>
         </>
       )}
@@ -762,7 +760,7 @@ export function Studio({
             <RedoIcon />
           </button>
           <button type="button" className="btn btn-primary btn-small st-share" onClick={() => setExporting(true)}>
-            <ShareIcon /> <span>তৈরি করো</span>
+            <ShareIcon /> <span>Share</span>
           </button>
         </div>
       </header>
@@ -770,7 +768,7 @@ export function Studio({
       <div className="st-body">
         {wide && (
           <aside className="st-side st-left">
-            <h3 className="side-title">ছবি</h3>
+            <h3 className="side-title">Photos</h3>
             {photoPanel}
           </aside>
         )}
@@ -813,7 +811,7 @@ export function Studio({
               })}
               <button type="button" className="st-addpage" onClick={addPage}>
                 <PlusIcon />
-                <span>নতুন পাতা</span>
+                <span>New page</span>
               </button>
             </div>
           </div>
@@ -891,7 +889,7 @@ export function Studio({
 
       <AnimatePresence>
         {exporting && (
-          <ExportSheet key="export" project={project} photo={photo} caption={caption} onClose={() => setExporting(false)} onToast={say} />
+          <ExportSheet key="export" project={project} photo={photo} onClose={() => setExporting(false)} onToast={say} />
         )}
       </AnimatePresence>
 

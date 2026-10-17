@@ -12,13 +12,11 @@ import type { Project } from "./types";
 export function ExportSheet({
   project,
   photo,
-  caption,
   onClose,
   onToast,
 }: {
   project: Project;
   photo: (id: string) => Photo | undefined;
-  caption?: string;
   onClose: () => void;
   onToast: (t: string) => void;
 }) {
@@ -58,11 +56,11 @@ export function ExportSheet({
   const share = async () => {
     if (!files) return;
     if (shareable) {
-      const r = await shareFiles(files, caption);
+      const r = await shareFiles(files);
       if (r !== "failed") return;
     }
     await downloadZip(files, zipName);
-    onToast(shareable ? "শেয়ার হল না, ZIP নামিয়ে দিলাম" : "ZIP নেমে গেছে");
+    onToast(shareable ? "Share হল না, ZIP নামিয়ে দিলাম" : "ZIP download হয়ে গেছে");
   };
 
   const pct = progress.total ? (progress.done / progress.total) * 100 : 0;
@@ -80,7 +78,7 @@ export function ExportSheet({
         transition={{ type: "spring", damping: 32, stiffness: 300 }}
       >
         <div className="export-head">
-          <h3>{files ? `${bnNum(files.length)}টা ছবি তৈরি` : failed ? "উফ, আটকে গেল" : "পুরো মাপে সাজাচ্ছি…"}</h3>
+          <h3>{files ? `${bnNum(files.length)}টা ছবি রেডি` : failed ? "উফ, আটকে গেল" : "ছবিগুলো রেডি করছি…"}</h3>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="বন্ধ করো">
             <CloseIcon />
           </button>
@@ -89,7 +87,7 @@ export function ExportSheet({
         {!files && !failed && (
           <>
             <p>
-              পাতা {bnNum(Math.min(progress.done + 1, progress.total))}/{bnNum(progress.total)}। ছবি ফোনের বাইরে যাচ্ছে না।
+              পাতা {bnNum(Math.min(progress.done + 1, progress.total))}/{bnNum(progress.total)}
             </p>
             <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
               <div style={{ width: `${pct}%`, transition: "width 0.25s ease-out" }} />
@@ -103,7 +101,7 @@ export function ExportSheet({
           <>
             <div className="export-strip">
               {files.map((f) => (
-                <button type="button" key={f.name} className="export-shot" onClick={() => downloadBlob(f.blob, f.name)} title="এই ছবিটা নামাও">
+                <button type="button" key={f.name} className="export-shot" onClick={() => downloadBlob(f.blob, f.name)} title="Download">
                   <img src={f.url} alt={f.name} />
                 </button>
               ))}
@@ -111,16 +109,16 @@ export function ExportSheet({
             {files.length > 20 && <p className="note">Instagram একটা পোস্টে ২০টা পর্যন্ত ছবি নেয়। দুটো পোস্টে ভাগ করে দাও।</p>}
             <div className="actions">
               <button type="button" className="btn btn-primary" onClick={share}>
-                <ShareIcon /> {shareable ? "শেয়ার করো" : "সব ছবি নামাও (ZIP)"}
+                <ShareIcon /> {shareable ? "Share" : "Download (ZIP)"}
               </button>
               {shareable && (
                 <button type="button" className="btn btn-ghost" onClick={() => downloadZip(files, zipName)}>
-                  <DownloadIcon /> ZIP নামাও
+                  <DownloadIcon /> ZIP
                 </button>
               )}
             </div>
             <p className="note">
-              Instagram-এ পোস্ট করার সময় trending গান লাগিয়ে দিও। প্রথম ছবিটাই cover। একটা ছবি নামাতে চাইলে সেটায় ট্যাপ করো।
+              প্রথম ছবিটাই cover হবে। একটা ছবি আলাদা করে নামাতে চাইলে সেটায় ট্যাপ করো।
             </p>
           </>
         )}

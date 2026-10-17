@@ -50,9 +50,9 @@ const KEEPERS = PILE.filter((t) => t.v === "keep").map((t) => t.p);
 const REJECTED = PILE.length - KEEPERS.length;
 
 const STEPS = [
-  { t: "সব ছবি দাও", d: "গ্যালারি থেকে একবারে সিলেক্ট করো" },
-  { t: "AI ছেঁকে নেয়", d: "একই পোজ আর ঝাপসা ছবি সরে যায়" },
-  { t: "মুডবোর্ডে বসে যায়", d: "সেরাগুলো ফাঁকা ফ্রেমে, তারপর শেয়ার" },
+  { t: "সব সিলেক্ট করো", d: "বাছাবাছির দরকার নেই" },
+  { t: "AI ছাঁকবে", d: "ঝাপসা আর একই রকম ছবি বাদ" },
+  { t: "মুডবোর্ডে বসবে", d: "তারপর সোজা Instagram" },
 ];
 const STEP_MS = [3000, 3400, 4600];
 
@@ -89,7 +89,7 @@ export function Sieve() {
       ? `${bnNum(PILE.length)}টা ছবি`
       : step === 1
         ? `${bnNum(REJECTED)}টা বাদ, ${bnNum(KEEPERS.length)}টা সেরা`
-        : "মুডবোর্ড তৈরি";
+        : "মুডবোর্ড রেডি";
 
   return (
     <div className="sieve">

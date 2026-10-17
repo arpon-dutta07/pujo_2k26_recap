@@ -65,7 +65,7 @@ export function Moodboards() {
           <motion.h2 className="home-title" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             {bnNum(BOARDS.length)}টা পুজোর মুডবোর্ড
           </motion.h2>
-          <p className="home-sub">ফাঁকা ফ্রেমে তোমার ছবি ঠিক মাপে বসে যায়।</p>
+          <p className="home-sub">তোমার ছবি ফ্রেমে নিজে থেকেই বসে যায়।</p>
         </div>
         <div className="mb-tools">
           {SAMPLE.length > 0 && (
@@ -73,7 +73,7 @@ export function Moodboards() {
               <motion.span key={round} initial={{ rotate: -180 }} animate={{ rotate: 0 }} style={{ display: "inline-flex" }}>
                 <ShuffleIcon />
               </motion.span>
-              ছবি বদলাও
+              Shuffle
             </motion.button>
           )}
           <button className="round-btn" onClick={() => step(-1)} aria-label="আগের মুডবোর্ড">

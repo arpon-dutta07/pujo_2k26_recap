@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CheckIcon, CopyIcon, EditIcon, PlayIcon, RestartIcon, ShareIcon } from "../components/Icons";
+import { CheckIcon, EditIcon, PlayIcon, RestartIcon, ShareIcon } from "../components/Icons";
 import { LIMITS } from "../config";
 import { ExportSheet } from "../editor/ExportSheet";
 import { PageView } from "../editor/PageView";
@@ -11,7 +11,6 @@ import { Studio } from "../editor/Studio";
 import "../editor/studio.css";
 import { defaultFormat, templateById } from "../editor/templates";
 import { bnNum } from "../lib/bn";
-import { captionIdeas } from "../lib/captions";
 import { DAY_ORDER } from "../lib/days";
 import type { PujoStats } from "../lib/stats";
 import type { Photo } from "../lib/types";
@@ -22,7 +21,7 @@ import { buildRecap } from "../recap/slides";
 import { SLIDE_W, type Slide } from "../recap/types";
 import { sceneLive } from "../three/store";
 
-type Tab = "templates" | "story" | "captions";
+type Tab = "templates" | "story";
 
 export function Results(props: {
   photos: Photo[];
@@ -101,17 +100,6 @@ export function Results(props: {
     return () => window.clearTimeout(id);
   }, []);
 
-  const captions = useMemo(() => captionIdeas(stats, chosen.length), [stats, chosen.length]);
-
-  const copy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("কপি হয়ে গেছে");
-    } catch {
-      showToast("কপি হল না, হাতে সিলেক্ট করে নাও");
-    }
-  };
-
   const slideCount = project.pages.reduce((n, p) => n + (templateById(p.template).span ?? 1), 0);
 
   return (
@@ -129,8 +117,8 @@ export function Results(props: {
             <Thumb slide={slides[0]} />
           </span>
           <span>
-            <b>তোমার পুজোর হিসেব তৈরি</b>
-            <small>{bnNum(slides.length)}টা স্লাইড। দেখো, তারপর story-তে দাও।</small>
+            <b>তোমার পুজোর হিসেব রেডি</b>
+            <small>{bnNum(slides.length)}টা স্লাইড, story-তে দেওয়ার মতো</small>
           </span>
           <span className="recap-play">
             <PlayIcon />
@@ -140,9 +128,8 @@ export function Results(props: {
         <div className="tabs" role="tablist">
           {(
             [
-              ["templates", "টেমপ্লেট"],
+              ["templates", "Carousel"],
               ["story", "পুজোর হিসেব"],
-              ["captions", "ক্যাপশন"],
             ] as const
           ).map(([id, label]) => (
             <button key={id} role="tab" className="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
@@ -164,14 +151,13 @@ export function Results(props: {
               <>
                 <div className="proj-intro">
                   <div>
-                    <h3>তোমার carousel সাজানো আছে</h3>
+                    <h3>Carousel রেডি</h3>
                     <p>
-                      AI সেরা ছবিগুলো টেমপ্লেটে বসিয়ে দিয়েছে। যেকোনো পাতায় ট্যাপ করে বদলাও: ছবি, টেমপ্লেট, স্টিকার, লেখা। পছন্দ না হলে নিজের ফোন থেকেও
-                      ছবি দিতে পারো।
+                      কোনো পাতা পছন্দ না হলে ট্যাপ করো। ছবি, টেমপ্লেট, স্টিকার, লেখা, সব বদলানো যায়।
                     </p>
                   </div>
                   <div className="field">
-                    <span>AI কটা ছবি বাছবে</span>
+                    <span>কটা ছবি</span>
                     <div className="pills">
                       {LIMITS.pickOptions.map((n) => (
                         <button key={n} className="pill" aria-pressed={pickCount === n} onClick={() => onPickCount(n)}>
@@ -207,13 +193,13 @@ export function Results(props: {
                 <div className="actions">
                   <motion.button className="btn btn-primary" onClick={() => setStudio(0)} whileTap={{ scale: 0.97 }}>
                     <EditIcon />
-                    এডিটরে খোলো
+                    Edit
                   </motion.button>
                   <button className="btn btn-ghost" onClick={() => setExporting(true)}>
-                    <ShareIcon /> এখনই শেয়ার করো ({bnNum(slideCount)}টা ছবি)
+                    <ShareIcon /> Share ({bnNum(slideCount)}টা ছবি)
                   </button>
                 </div>
-                <p className="note">Instagram-এ পোস্ট করার সময় trending গান লাগিয়ে দিও। প্রথম ছবিটাই cover, তাই সেরাটা সামনে রেখেছি।</p>
+                <p className="note">প্রথম ছবিটাই cover হবে, তাই সেরাটা সামনে রেখেছি।</p>
               </>
             )}
 
@@ -229,37 +215,19 @@ export function Results(props: {
                 </div>
                 <div className="actions" style={{ marginTop: 22 }}>
                   <motion.button className="btn btn-primary" onClick={() => setRecap(0)} whileTap={{ scale: 0.97 }}>
-                    <PlayIcon /> পুরোটা চালাও
+                    <PlayIcon /> Play
                   </motion.button>
                 </div>
-                <p className="note">চালিয়ে যেকোনো স্লাইডে "এটা শেয়ার করো" টিপলেই Instagram story বা WhatsApp-এ চলে যাবে।</p>
+                <p className="note">যে স্লাইড ভালো লাগে, চালিয়ে Share টিপে দাও।</p>
               </>
             )}
 
-            {tab === "captions" && (
-              <div className="captions">
-                {captions.map((c, i) => (
-                  <motion.div
-                    key={c}
-                    className="caption-card"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <div>{c}</div>
-                    <button className="btn btn-ghost btn-small" onClick={() => copy(c)}>
-                      <CopyIcon /> কপি করো
-                    </button>
-                  </motion.div>
-                ))}
-              </div>
-            )}
           </motion.div>
         </AnimatePresence>
 
         <div className="actions" style={{ marginTop: 30 }}>
           <button className="btn btn-ghost btn-small" onClick={onRestart}>
-            <RestartIcon /> নতুন ছবি দিয়ে আবার
+            <RestartIcon /> নতুন করে শুরু
           </button>
         </div>
       </motion.div>
@@ -279,7 +247,6 @@ export function Results(props: {
                 mine={extras}
                 rest={rest}
                 onAddPhotos={(list) => setExtras((x) => [...list, ...x])}
-                caption={captions[0]}
                 startPage={studio}
                 onClose={() => setStudio(null)}
               />
@@ -290,7 +257,7 @@ export function Results(props: {
           </AnimatePresence>
           <AnimatePresence>
             {exporting && (
-              <ExportSheet key="export" project={project} photo={photo} caption={captions[0]} onClose={() => setExporting(false)} onToast={showToast} />
+              <ExportSheet key="export" project={project} photo={photo} onClose={() => setExporting(false)} onToast={showToast} />
             )}
           </AnimatePresence>
         </>,
@@ -370,7 +337,7 @@ function RingStage({ count }: { count: number }) {
         transition={{ delay: 0.9, duration: 0.6 }}
       >
         <h2>তোমার সেরা {bnNum(count)}টা</h2>
-        <p>টেনে ঘোরাও · নিচে Instagram-রেডি ছবি</p>
+        <p>Drag করে ঘুরিয়ে দেখো</p>
       </motion.div>
     </div>
   );

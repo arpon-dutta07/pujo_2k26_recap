@@ -149,10 +149,10 @@ export function PhotoPanel({
     <div className="panel-body">
       <div className="panel-actions">
         <button type="button" className="btn btn-primary btn-small" onClick={() => input.current?.click()}>
-          <PhotosIcon /> ফোন থেকে ছবি দাও
+          <PhotosIcon /> ফোন থেকে আরও ছবি
         </button>
         <button type="button" className="btn btn-ghost btn-small" onClick={onAutofill}>
-          <WandIcon /> ফাঁকা জায়গা AI ভরে দিক
+          <WandIcon /> Auto-fill
         </button>
         <input
           ref={input}
@@ -171,7 +171,7 @@ export function PhotoPanel({
 
       {(mine.length > 0 || adding > 0) && (
         <>
-          <h4 className="panel-title">তোমার দেওয়া</h4>
+          <h4 className="panel-title">তোমার ছবি</h4>
           <div className="ph-grid">
             {mine.map((p) => (
               <PhotoTile key={p.id} photo={p} used={used.has(p.id)} onPick={onPick} />
@@ -221,7 +221,7 @@ export const TEXT_PRESETS: TextDraft[] = [
   { text: "দুগ্গা দুগ্গা", font: "display", color: "#f2c46d", style: "pill" },
   { text: "মা আসছেন", font: "display", color: "#b3121b", style: "pill" },
   { text: "ঢাকের তালে", font: "body", color: "#fff6e6", style: "shadow" },
-  { text: "অষ্টমীর অঞ্জলি", font: "serif", color: "#6d0f17", style: "paper" },
+  { text: "জয় মা দুর্গা", font: "serif", color: "#6d0f17", style: "paper" },
   { text: "Puja Vibes", font: "display", color: "#fff6e6", style: "shadow" },
   { text: "পুজো ২০২৬", font: "serif", color: "#f2c46d", style: "pill" },
 ];
@@ -334,7 +334,7 @@ export function StickerPanel({
   return (
     <div className="panel-body">
       <p className="panel-hint">
-        ট্যাপ করলে পাতার মাঝখানে বসবে, বা টেনে এনে পাতার যেখানে খুশি ফেলো (ফোনে একটু চেপে ধরে টানো)। কোণের গোল বোতাম টেনে ঘোরাও আর বড়-ছোট করো।
+        ট্যাপ করলে পাতার মাঝে বসবে, বা drag করে যেখানে খুশি রাখো (ফোনে একটু চেপে ধরে টানো)। কোণের গোল বোতাম দিয়ে ঘোরাও, বড়-ছোট করো।
       </p>
       {stickerGroups().map(([group, list], gi) => (
         <div key={group} className="st-group">
@@ -348,7 +348,7 @@ export function StickerPanel({
           </div>
         </div>
       ))}
-      <h4 className="panel-title">লেখা-স্টিকার</h4>
+      <h4 className="panel-title">Text stickers</h4>
       <div className="tx-presets">
         {TEXT_PRESETS.map((t) => (
           <button key={t.text} type="button" className="tx-preset" onClick={() => onText(t)}>
@@ -375,10 +375,10 @@ export function StickerPanel({
 
 export const COLORS = ["#fff6e6", "#f2c46d", "#b3121b", "#6d0f17", "#1a0d08", "#ffffff", "#24522a", "#ef8aa8"];
 const STYLES: Array<[TextStyle, string]> = [
-  ["plain", "সাধারণ"],
-  ["shadow", "ছায়া"],
-  ["paper", "কাগজ"],
-  ["pill", "রঙিন পাড়"],
+  ["plain", "Plain"],
+  ["shadow", "Shadow"],
+  ["paper", "Paper"],
+  ["pill", "Pill"],
 ];
 
 export function TextPanel({
@@ -413,12 +413,12 @@ export function TextPanel({
         value={text}
         rows={2}
         maxLength={80}
-        placeholder="এখানে লেখো, যেমন: অষ্টমীর সন্ধে"
+        placeholder="কিছু লেখো…"
         onChange={(e) => setText(e.target.value)}
         onBlur={() => editing && submit()}
       />
       <div className="tx-row">
-        <span>ফন্ট</span>
+        <span>Font</span>
         <div className="pills">
           {(Object.keys(FONTS) as FontKey[]).map((k) => (
             <button
@@ -435,7 +435,7 @@ export function TextPanel({
         </div>
       </div>
       <div className="tx-row">
-        <span>রং</span>
+        <span>Color</span>
         <div className="swatches">
           {COLORS.map((c) => (
             <button
@@ -451,7 +451,7 @@ export function TextPanel({
         </div>
       </div>
       <div className="tx-row">
-        <span>ধরন</span>
+        <span>Style</span>
         <div className="pills">
           {STYLES.map(([k, label]) => (
             <button key={k} type="button" className="pill" aria-pressed={value.style === k} onClick={() => set({ style: k })}>
@@ -462,10 +462,10 @@ export function TextPanel({
       </div>
       <button type="button" className="btn btn-primary btn-small" onClick={submit} disabled={!text.trim()}>
         {editing ? (
-          "লেখা বদলাও"
+          "Update"
         ) : (
           <>
-            <PlusIcon /> পাতায় বসাও
+            <PlusIcon /> Add
           </>
         )}
       </button>

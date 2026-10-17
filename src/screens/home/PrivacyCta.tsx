@@ -5,9 +5,9 @@ import { LIMITS } from "../../config";
 import { bnNum } from "../../lib/bn";
 
 const POINTS = [
-  { Icon: ServerOffIcon, t: "সার্ভার নেই", d: "সব কাজ ফোনের ব্রাউজারে" },
-  { Icon: UserOffIcon, t: "লগইন নেই", d: "নাম, নম্বর কিছু লাগে না" },
-  { Icon: CloudOffIcon, t: "আপলোড নেই", d: "পেজ বন্ধ করলেই সব মুছে যায়" },
+  { Icon: CloudOffIcon, t: "No upload", d: "ছবি ফোন থেকে বেরোয় না" },
+  { Icon: UserOffIcon, t: "No login", d: "নাম-নম্বর কিছু চাই না" },
+  { Icon: ServerOffIcon, t: "No app", d: "ব্রাউজারেই চলে, কিছু install নয়" },
 ];
 
 export function PrivacyCta({ onPick }: { onPick: () => void }) {
@@ -34,7 +34,7 @@ export function PrivacyCta({ onPick }: { onPick: () => void }) {
         </motion.ul>
         <motion.button className="btn btn-primary btn-big" onClick={onPick} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}>
           <PhotosIcon />
-          পুজোর ছবি বাছো
+          ছবি সিলেক্ট করো
         </motion.button>
         <p className="promise-note">একবারে {bnNum(LIMITS.maxPhotos)}টা পর্যন্ত ছবি · iPhone আর Android</p>
       </div>
