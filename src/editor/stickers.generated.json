@@ -142,5 +142,77 @@
     "src": "/stickers/s02-phul-pata-9.webp",
     "w": 245,
     "h": 324
+  },
+  {
+    "id": "s03-dhak-gaan-1",
+    "name": "ঢাক",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-1.webp",
+    "w": 260,
+    "h": 334
+  },
+  {
+    "id": "s03-dhak-gaan-2",
+    "name": "ঢাকের কাঠি",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-2.webp",
+    "w": 188,
+    "h": 268
+  },
+  {
+    "id": "s03-dhak-gaan-3",
+    "name": "কাঁসর ঘণ্টা",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-3.webp",
+    "w": 249,
+    "h": 287
+  },
+  {
+    "id": "s03-dhak-gaan-4",
+    "name": "হারমোনিয়াম",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-4.webp",
+    "w": 303,
+    "h": 237
+  },
+  {
+    "id": "s03-dhak-gaan-5",
+    "name": "সেতার",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-5.webp",
+    "w": 302,
+    "h": 356
+  },
+  {
+    "id": "s03-dhak-gaan-6",
+    "name": "রেডিও",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-6.webp",
+    "w": 285,
+    "h": 210
+  },
+  {
+    "id": "s03-dhak-gaan-7",
+    "name": "গ্রামোফোন",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-7.webp",
+    "w": 223,
+    "h": 320
+  },
+  {
+    "id": "s03-dhak-gaan-8",
+    "name": "ক্যাসেট",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-8.webp",
+    "w": 268,
+    "h": 183
+  },
+  {
+    "id": "s03-dhak-gaan-9",
+    "name": "তবলা",
+    "group": "ঢাক আর গান",
+    "src": "/stickers/s03-dhak-gaan-9.webp",
+    "w": 303,
+    "h": 210
   }
 ]
