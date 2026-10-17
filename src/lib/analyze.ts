@@ -1,0 +1,262 @@
+import type { FaceLandmarker } from "@mediapipe/tasks-vision";
+import { LIMITS } from "../config";
+import { pujoDayOf } from "./days";
+import { readExif, type ExifInfo } from "./exif";
+import { detectFaces, loadFaceModel } from "./faces";
+import { canvasToJpeg, decodeBitmap, drawFit, hamming, measure } from "./image";
+import type { Photo, Progress } from "./types";
+
+export type AnalyzeCallbacks = {
+  onProgress: (p: Progress) => void;
+  // Fired as soon as one photo is measured, so the 3D funnel can show it.
+  onPhoto: (photo: Photo, thumb: HTMLCanvasElement) => void;
+};
+
+// A macrotask break so the 3D scene can draw a frame. MessageChannel instead of
+// setTimeout: background tabs clamp timers to 1 s, which made a 25-photo run take 27 s.
+const channel = new MessageChannel();
+const waiting: Array<() => void> = [];
+channel.port1.onmessage = () => waiting.shift()?.();
+const yieldToUI = () =>
+  new Promise<void>((r) => {
+    waiting.push(r);
+    channel.port2.postMessage(0);
+  });
+
+// Same pose: hashes within a few bits AND taken close together.
+const BURST_SECONDS = 90;
+const BURST_MINUTES = 5;
+const DUP_BITS_BURST = 12;
+const DUP_BITS_TIMED = 10;
+const DUP_BITS_UNTIMED = 6;
+
+function emptyPhoto(file: File, index: number, exif: ExifInfo): Photo {
+  const takenAt = exif.takenAt ?? (file.lastModified ? new Date(file.lastModified) : null);
+  return {
+    id: `p${index}`,
+    file,
+    index,
+    takenAt,
+    fromExif: Boolean(exif.takenAt),
+    isFrontCamera: exif.isFrontCamera,
+    gps: exif.gps,
+    width: 0,
+    height: 0,
+    thumbUrl: "",
+    hash: null,
+    sharpness: 0,
+    brightness: 0.5,
+    faces: null,
+    day: exif.takenAt ? pujoDayOf(exif.takenAt) : null,
+    status: "pending",
+    duplicateOf: null,
+    burstSize: 1,
+    kind: exif.isFrontCamera ? "people" : "thakur",
+    score: 0,
+  };
+}
+
+const kindOf = (p: Photo): Photo["kind"] => (p.isFrontCamera || (p.faces?.count ?? 0) > 0 ? "people" : "thakur");
+
+const secondsApart = (a: Photo, b: Photo) =>
+  a.fromExif && b.fromExif && a.takenAt && b.takenAt ? Math.abs(a.takenAt.getTime() - b.takenAt.getTime()) / 1000 : null;
+
+function isNearDuplicate(a: Photo, b: Photo): boolean {
+  if (!a.hash || !b.hash) return false;
+  const d = hamming(a.hash, b.hash);
+  const gap = secondsApart(a, b);
+  if (gap === null) return d <= DUP_BITS_UNTIMED;
+  if (gap <= BURST_SECONDS) return d <= DUP_BITS_BURST;
+  return gap <= BURST_MINUTES * 60 && d <= DUP_BITS_TIMED;
+}
+
+const median = (xs: number[]) => {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  return s[Math.floor(s.length / 2)];
+};
+
+export async function analyzePhotos(files: File[], cb: AnalyzeCallbacks, signal?: AbortSignal): Promise<Photo[]> {
+  const modelPromise = loadFaceModel();
+  let model: FaceLandmarker | null = null;
+  void modelPromise.then((m) => (model = m));
+
+  const progress: Progress = {
+    phase: "reading",
+    done: 0,
+    total: files.length,
+    duplicates: 0,
+    blurry: 0,
+    faces: 0,
+    unreadable: 0,
+  };
+  cb.onProgress({ ...progress });
+
+  const photos: Photo[] = [];
+  const work = document.createElement("canvas");
+  const needFaces: Photo[] = [];
+  const sharpSeen: number[] = [];
+
+  const load = (i: number) =>
+    Promise.all([readExif(files[i]), decodeBitmap(files[i], LIMITS.analysisSize).catch(() => null)]);
+
+  let next = files.length ? load(0) : null;
+  for (let i = 0; i < files.length; i++) {
+    if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+    const [exif, bmp] = await next!;
+    next = i + 1 < files.length ? load(i + 1) : null;
+
+    const photo = emptyPhoto(files[i], i, exif);
+    photos.push(photo);
+
+    if (!bmp) {
+      photo.status = "unreadable";
+      progress.unreadable++;
+    } else {
+      photo.width = bmp.width;
+      photo.height = bmp.height;
+      const analysis = drawFit(bmp, LIMITS.analysisSize, work);
+      const thumb = drawFit(bmp, LIMITS.thumbSize);
+      bmp.close();
+
+      const m = measure(analysis);
+      photo.hash = m.hash;
+      photo.sharpness = m.sharpness;
+      photo.brightness = m.brightness;
+      sharpSeen.push(m.sharpness);
+
+      const ready = model as FaceLandmarker | null;
+      if (ready) photo.faces = detectFaces(ready, analysis);
+      else needFaces.push(photo);
+      if (photo.faces?.count) progress.faces++;
+      photo.kind = kindOf(photo);
+
+      photo.thumbUrl = URL.createObjectURL(canvasToJpeg(thumb, 0.8));
+
+      // Live, provisional verdict for the animation. finalize() decides for real.
+      const recent = photos.slice(Math.max(0, photos.length - 26), photos.length - 1);
+      const dupe = recent.find((q) => q.status !== "unreadable" && isNearDuplicate(photo, q));
+      const med = median(sharpSeen);
+      if (dupe) {
+        photo.status = "duplicate";
+        progress.duplicates++;
+      } else if (sharpSeen.length >= 5 && photo.sharpness < Math.max(18, 0.32 * med)) {
+        photo.status = "blurry";
+        progress.blurry++;
+      } else {
+        photo.status = "ok";
+      }
+      cb.onPhoto(photo, thumb);
+    }
+
+    progress.phase = "looking";
+    progress.done = i + 1;
+    cb.onProgress({ ...progress });
+    await yieldToUI();
+  }
+
+  // Photos measured before the model finished downloading get their face pass now.
+  const pending = needFaces.filter((p) => p.status !== "unreadable");
+  if (pending.length) {
+    const ready = await modelPromise;
+    if (ready) {
+      progress.phase = "faces";
+      progress.done = 0;
+      progress.total = pending.length;
+      cb.onProgress({ ...progress });
+      for (const p of pending) {
+        if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+        try {
+          const bmp = await decodeBitmap(p.file, LIMITS.analysisSize);
+          const c = drawFit(bmp, LIMITS.analysisSize, work);
+          bmp.close();
+          p.faces = detectFaces(ready, c);
+          if (p.faces.count) progress.faces++;
+          p.kind = kindOf(p);
+        } catch {
+          // keep going without faces for this one
+        }
+        progress.done++;
+        cb.onProgress({ ...progress });
+        await yieldToUI();
+      }
+    }
+  }
+
+  progress.phase = "choosing";
+  progress.done = files.length;
+  progress.total = files.length;
+  cb.onProgress({ ...progress });
+  finalize(photos);
+  progress.duplicates = photos.filter((p) => p.status === "duplicate").length;
+  progress.blurry = photos.filter((p) => p.status === "blurry").length;
+  progress.phase = "done";
+  cb.onProgress({ ...progress });
+  return photos;
+}
+
+function scorePhoto(p: Photo, p75: number): number {
+  const sharp = Math.min(1.2, p.sharpness / Math.max(1, p75));
+  const exposure = p.brightness < 0.06 ? 0.3 : p.brightness > 0.92 ? 0.5 : 1;
+  let s = 0.5 * sharp + 0.15 * exposure;
+  const f = p.faces;
+  if (f && f.count) {
+    s += 0.12 + 0.25 * f.smile;
+    s -= 0.45 * (f.eyesClosed / f.count);
+    s += Math.min(0.08, f.largestArea * 0.5);
+  }
+  return s;
+}
+
+// Whole-set decisions: blur relative to this person's own photos, bursts by hash + time.
+export function finalize(photos: Photo[]) {
+  const decoded = photos.filter((p) => p.status !== "unreadable");
+  if (!decoded.length) return;
+
+  const sharp = decoded.map((p) => p.sharpness).sort((a, b) => a - b);
+  const med = sharp[Math.floor(sharp.length / 2)];
+  const p75 = sharp[Math.floor(sharp.length * 0.75)];
+  for (const p of decoded) p.score = scorePhoto(p, p75);
+
+  // Blur: below a third of the median, never more than 40% of the set.
+  const threshold = Math.max(18, 0.32 * med);
+  const blurry = decoded
+    .filter((p) => p.sharpness < threshold)
+    .sort((a, b) => a.sharpness - b.sharpness)
+    .slice(0, Math.floor(decoded.length * 0.4));
+  const blurrySet = new Set(blurry.map((p) => p.id));
+  for (const p of decoded) {
+    p.status = blurrySet.has(p.id) ? "blurry" : "ok";
+    p.duplicateOf = null;
+    p.burstSize = 1;
+  }
+
+  // Union-find over a sliding window in time order.
+  const ordered = [...decoded].sort(
+    (a, b) => (a.takenAt?.getTime() ?? Infinity) - (b.takenAt?.getTime() ?? Infinity) || a.index - b.index,
+  );
+  const parent = ordered.map((_, i) => i);
+  const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  for (let i = 0; i < ordered.length; i++) {
+    for (let j = i + 1; j < Math.min(ordered.length, i + 40); j++) {
+      if (isNearDuplicate(ordered[i], ordered[j])) parent[find(j)] = find(i);
+    }
+  }
+  const clusters = new Map<number, Photo[]>();
+  ordered.forEach((p, i) => {
+    const root = find(i);
+    clusters.set(root, [...(clusters.get(root) ?? []), p]);
+  });
+  for (const group of clusters.values()) {
+    if (group.length < 2) continue;
+    const best = [...group].sort(
+      (a, b) => Number(a.status === "blurry") - Number(b.status === "blurry") || b.score - a.score,
+    )[0];
+    best.burstSize = group.length;
+    for (const p of group) {
+      if (p === best) continue;
+      p.status = "duplicate";
+      p.duplicateOf = best.id;
+    }
+  }
+}
