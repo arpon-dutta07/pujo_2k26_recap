@@ -533,16 +533,35 @@ export function Studio({
     return { x: Math.min(W - 160, Math.max(160, x)), y: H / 2, W, H };
   };
 
-  const addSticker = (kind: string) => {
+  const stickerItem = (kind: string, x: number, y: number): StickerItem | null => {
     const def = stickerById(kind);
-    if (!def) return;
-    const c = visibleCenter(page, current);
+    if (!def) return null;
     const ratio = def.w > 0 ? def.h / def.w : 1;
-    const size = ratio > 1 ? 340 / ratio : 340;
-    const item: StickerItem = { id: uid("s"), kind, x: c.x, y: c.y, size, rotate: 0 };
+    return { id: uid("s"), kind, x, y, size: ratio > 1 ? 340 / ratio : 340, rotate: 0 };
+  };
+
+  const addSticker = (kind: string) => {
+    const c = visibleCenter(page, current);
+    const item = stickerItem(kind, c.x, c.y);
+    if (!item) return;
     commit(updatePage(project, page.id, (p) => ({ ...p, stickers: [...p.stickers, item] })));
     setSel({ kind: "sticker", id: item.id, pageId: page.id });
     if (!wide) setTool(null);
+  };
+
+  // A sticker dragged out of the panel lands where it was let go, on whichever page is there.
+  const dropSticker = (kind: string, clientX: number, clientY: number) => {
+    const pageEl = document.elementFromPoint(clientX, clientY)?.closest<HTMLElement>("[data-page-index]");
+    const pageObj = pageEl ? pages[Number(pageEl.dataset.pageIndex)] : undefined;
+    const pv = pageEl?.querySelector<HTMLElement>(".pv");
+    if (!pageObj || !pv) return false;
+    const r = pv.getBoundingClientRect();
+    const { W, H } = pageSize(format, templateById(pageObj.template));
+    const item = stickerItem(kind, ((clientX - r.left) / r.width) * W, ((clientY - r.top) / r.height) * H);
+    if (!item) return false;
+    commit(updatePage(project, pageObj.id, (p) => ({ ...p, stickers: [...p.stickers, item] })));
+    setSel({ kind: "sticker", id: item.id, pageId: pageObj.id });
+    return true;
   };
 
   const addText = (d: TextDraft) => {
@@ -648,7 +667,7 @@ export function Studio({
     ) : t === "photos" ? (
       photoPanel
     ) : t === "stickers" ? (
-      <StickerPanel onSticker={addSticker} onText={addText} />
+      <StickerPanel onSticker={addSticker} onText={addText} onDropAt={dropSticker} />
     ) : (
       <TextPanel item={selText} onAdd={addText} onChange={(patch) => patchSelected(patch)} />
     );

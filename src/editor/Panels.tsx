@@ -6,7 +6,7 @@ import { dayLabel } from "../lib/days";
 import type { Photo } from "../lib/types";
 import { contrastInk, FONTS, PAPER, templateThumb } from "./render";
 import { StickerSvg } from "./StickerSvg";
-import { STICKERS } from "./stickers";
+import { STICKERS, type StickerDef } from "./stickers";
 import { templateById, templatesFor } from "./templates";
 import { FORMATS, type FontKey, type Format, type TextItem, type TextStyle } from "./types";
 
@@ -226,13 +226,119 @@ export const TEXT_PRESETS: TextDraft[] = [
   { text: "পুজো ২০২৬", font: "serif", color: "#f2c46d", style: "pill" },
 ];
 
-export function StickerPanel({ onSticker, onText }: { onSticker: (kind: string) => void; onText: (d: TextDraft) => void }) {
+// Dragging a sticker out of the panel. With a mouse it starts as soon as the
+// pointer moves; on a phone after a short press, so a normal swipe still
+// scrolls the panel. A floating copy follows the finger; letting go over a
+// page drops the sticker there.
+function useStickerDrag(onSticker: (kind: string) => void, onDropAt?: (kind: string, x: number, y: number) => boolean) {
+  type Drag = {
+    def: StickerDef;
+    el: HTMLElement;
+    pointer: number;
+    x0: number;
+    y0: number;
+    touch: boolean;
+    timer: number;
+    ghost: HTMLImageElement | null;
+  };
+  const drag = useRef<Drag | null>(null);
+  const skipClick = useRef(false);
+
+  useEffect(() => {
+    // While a sticker is being dragged, the panel must not scroll under the finger.
+    const block = (e: TouchEvent) => {
+      if (drag.current?.ghost) e.preventDefault();
+    };
+    window.addEventListener("touchmove", block, { passive: false });
+    return () => {
+      window.removeEventListener("touchmove", block);
+      drag.current?.ghost?.remove();
+    };
+  }, []);
+
+  const place = (g: HTMLImageElement, x: number, y: number) => (g.style.translate = `${x - 52}px ${y - 52}px`);
+  const begin = (d: Drag, x: number, y: number) => {
+    const g = document.createElement("img");
+    g.src = d.def.src;
+    g.alt = "";
+    g.className = "st-ghost";
+    document.body.appendChild(g);
+    place(g, x, y);
+    d.ghost = g;
+    try {
+      d.el.setPointerCapture(d.pointer);
+    } catch {
+      // the pointer may already be gone
+    }
+    navigator.vibrate?.(12);
+  };
+  const finish = () => {
+    const d = drag.current;
+    if (d) {
+      window.clearTimeout(d.timer);
+      d.ghost?.remove();
+    }
+    drag.current = null;
+  };
+
+  return (def: StickerDef) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      if (!onDropAt || e.button > 0) return;
+      const el = e.currentTarget;
+      const d: Drag = { def, el, pointer: e.pointerId, x0: e.clientX, y0: e.clientY, touch: e.pointerType !== "mouse", timer: 0, ghost: null };
+      if (d.touch) d.timer = window.setTimeout(() => drag.current === d && !d.ghost && begin(d, d.x0, d.y0), 230);
+      drag.current = d;
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+      const d = drag.current;
+      if (!d || d.pointer !== e.pointerId) return;
+      if (d.ghost) {
+        place(d.ghost, e.clientX, e.clientY);
+        return;
+      }
+      const moved = Math.hypot(e.clientX - d.x0, e.clientY - d.y0);
+      if (d.touch && moved > 10) finish();
+      else if (!d.touch && moved > 6) begin(d, e.clientX, e.clientY);
+    },
+    onPointerUp: (e: React.PointerEvent<HTMLElement>) => {
+      const d = drag.current;
+      if (!d || d.pointer !== e.pointerId) return;
+      if (d.ghost) {
+        skipClick.current = true;
+        onDropAt?.(d.def.id, e.clientX, e.clientY);
+      }
+      finish();
+    },
+    onPointerCancel: finish,
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    onClick: () => {
+      if (skipClick.current) {
+        skipClick.current = false;
+        return;
+      }
+      onSticker(def.id);
+    },
+  });
+}
+
+export function StickerPanel({
+  onSticker,
+  onText,
+  onDropAt,
+}: {
+  onSticker: (kind: string) => void;
+  onText: (d: TextDraft) => void;
+  onDropAt?: (kind: string, x: number, y: number) => boolean;
+}) {
+  const handlers = useStickerDrag(onSticker, onDropAt);
   return (
     <div className="panel-body">
-      <p className="panel-hint">ট্যাপ করলে পাতার মাঝখানে বসবে। টেনে সরাও, কোণের গোল বোতাম টেনে ঘোরাও আর বড়-ছোট করো।</p>
+      <p className="panel-hint">
+        ট্যাপ করলে পাতার মাঝখানে বসবে, বা টেনে এনে পাতার যেখানে খুশি ফেলো (ফোনে একটু চেপে ধরে টানো)। কোণের গোল বোতাম টেনে ঘোরাও আর বড়-ছোট করো।
+      </p>
       <div className="st-grid">
         {STICKERS.map((s) => (
-          <button key={s.id} type="button" className="st-tile" onClick={() => onSticker(s.id)} aria-label={s.name} title={s.name}>
+          <button key={s.id} type="button" className="st-tile" aria-label={s.name} title={s.name} {...handlers(s)}>
             <StickerSvg def={s} />
           </button>
         ))}
