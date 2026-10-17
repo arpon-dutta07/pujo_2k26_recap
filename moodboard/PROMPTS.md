@@ -85,7 +85,7 @@ The sheets above that are not made yet (s04 to s12) can use Style C too: put the
 
 ---
 
-## Part 2: Moodboard templates
+## Part 2: Moodboard templates (the busy scrapbook look; for the cleaner set see Part 3)
 
 **Style references:** `moodboard/references/style-01.webp` to `style-08.webp` (and the 8 live templates in `moodboard/originals/`).
 
@@ -159,3 +159,65 @@ Photo-count mix across designs 16-35:
 | 3 | 6 |
 | 4 | 5 |
 | 5 | 2 |
+
+---
+
+## Part 3: Minimal moodboards (styles A, B, D, E)
+
+The owner found the Part 2 moodboards too crowded: so many props and stickers that the photos got lost. This set is the opposite: **photo first, calm background, two or three small decorations at most.** Use the Part 3 BASE and FRAME RULES below for these 12, not the Part 2 ones.
+
+**Style references:** `moodboard/references/pujo-moodboard-styles-1.jpg` (A, B) and `pujo-moodboard-styles-2.jpg` (D, E). They are Pinterest examples: use them for the feel only, never copy a layout, element or photo. Ignore the music-player cards in them; no app screens in ours.
+
+### Steps
+
+Same as Part 2 (generate 9:16, 3 variations, keep the best, save as `moodboard/originals/<id>__story.png`, add to `moodboard/templates.json`, `npm run templates`, check the debug sheet, add to `VERIFIED`, build, commit), plus one more reason to reject an image:
+
+- the plain background came out as one flat colour (the template script would mistake it for a photo frame), or there are more than three decorations.
+
+### BASE-MINIMAL (start of every Part 3 prompt)
+
+> Vertical 9:16 phone-story photo template for Bengali Durga Puja, clean, minimal and elegant, desi but modern, like a premium Instagram story template. Photo first: the empty photo frames are the hero and together cover at least 60 percent of the image. Everything else is calm, quiet background with generous empty space. At most three small decorations in the whole image, kept at the edges or corners. No clutter: no piles of stickers, no layered torn papers, no props crowding the frames, no lace, no washi tape unless the design below asks for it. Soft natural light, subtle realistic textures, high resolution.
+
+### FRAME RULES-MINIMAL (end of every Part 3 prompt; fill in N)
+
+> The template contains EXACTLY N empty photo frames for the viewer's own photos. The inside of every frame is one perfectly flat, solid, plain warm beige #E6DCC8: completely blank, with no texture, no gradient, no shadow, no text, no icon and nothing inside. Nothing overlaps the inside of a frame. Frames never overlap each other and are separated by clear gaps. Each frame is large, upright or tilted at most 6 degrees. The background is never one flat colour: it always shows a visible paper, fabric or velvet texture. No watermark, logo, signature, music player, app screen or brand name. Text only where this prompt gives it, spelled exactly as given; no other text anywhere.
+
+### The 12 designs
+
+| # | Style | id | Bangla name | Photos | Design (goes between BASE-MINIMAL and FRAME RULES-MINIMAL) |
+| --- | --- | --- | --- | --- | --- |
+| 1 | A | `padma` | পদ্ম | 2 | Background: warm ivory handmade paper with soft fibres. Two tall portrait frames with a thin white border and a soft shadow: the left one sits higher, the right one lower, together filling the middle of the image. One watercolour red lotus with two leaves painted in the bottom-left corner. Small red handwritten Bengali text at the top right: "শুভ শারদীয়া". |
+| 2 | A | `shiuli-char` | শিউলি | 4 | Background: off-white cotton paper with a faint texture. Four equal portrait frames in a neat 2 x 2 grid with narrow even gaps, the grid filling the top three quarters of the image. Below the grid, one sprig of white shiuli flowers with orange stems lying sideways. No text. |
+| 3 | A | `alpona-tin` | আলপনা | 3 | Background: soft cream paper. One wide landscape frame across the top and two portrait frames side by side below it, all with thin white borders. A fine red alpona corner pattern only in the top-left and bottom-right corners. Small red Bengali text centred at the very bottom: "জয় মা দুর্গা". |
+| 4 | B | `khilan` | খিলান | 1 | Background: deep sindoor-red velvet with a soft sheen. One large arch-shaped frame in the centre, with a scalloped Bengal-temple arch top and straight sides, about two thirds of the image height, outlined by a single string of small white pearls. A small brass diya with a flame just below the arch. Small gold Bengali text near the bottom: "জয় মা দুর্গা". |
+| 5 | B | `tin-khilan` | তিন খিলান | 3 | Background: deep maroon velvet. Three arch-shaped frames with rounded tops, each outlined by a string of small white pearls, in a staggered column: top left, middle right, bottom left. A small white line drawing of Maa Durga's eyes and third eye in the top-right corner is the only ornament. No text. |
+| 6 | B | `ghontar-khilan` | দুই খিলান | 2 | Background: cream handmade paper with a faint red block-print border along the edges. Two tall arch-shaped frames with scalloped tops side by side in the middle, with thin gold outlines. Two small brass bells hang on red threads from the top edge, above the gap between the arches. No text. |
+| 7 | D | `pujo-dump` | পুজো ডাম্প | 4 | Background: warm off-white paper. Four large frames in a tight 2 x 2 grid with thin even gaps, filling most of the image, with a slightly wider margin at the bottom. In that bottom margin, small red handwritten English text "pujo dump" with a tiny hand-drawn heart. |
+| 8 | D | `pandal-hopping-grid` | প্যান্ডেল হপিং | 6 | Background: deep night-plum paper with a fine texture. Six frames in a tight grid, three rows of two, with thin even gaps, filling most of the image. At the top, small handwritten gold English text "pandal hopping" with two tiny star doodles. Nothing else. |
+| 9 | D | `mosaic` | মোজাইক | 5 | Background: warm ivory paper. Five frames as a mosaic: one wide frame across the top, then two portrait frames side by side, then two more side by side, all with thin even gaps. A tiny cluster of red alpona dots in the bottom-right corner. Small red handwritten Bengali text in the bottom-left: "দুগ্গা দুগ্গা". |
+| 10 | E | `film-roll` | ফিল্ম রোল | 4 | Background: cream textured paper. One vertical dark-brown 35 mm film strip runs from near the top to near the bottom, tilted about 5 degrees, with white sprocket holes along both sides and four photo frames inside it. One dried shiuli sprig in the bottom-right corner. No text. |
+| 11 | E | `photo-booth` | ফটো বুথ | 3 | Background: warm sindoor-red paper with a soft texture. A white photo-booth print strip with three stacked frames, tilted about 4 degrees, in the centre, held at the top by a brass paper clip. Small gold handwritten Bengali text to the right of the strip near the bottom: "দুগ্গা দুগ্গা". |
+| 12 | E | `dui-roll` | দুটো রোল | 6 | Background: deep plum velvet with a few tiny warm fairy-light bokeh dots near the top edge. Two vertical dark-brown film strips side by side, the left one set higher than the right, each with three photo frames and sprocket holes along its sides. No text. |
+
+`moodboard/templates.json` entries, in this order:
+
+```json
+"padma": { "name": "পদ্ম", "photos": 2 },
+"shiuli-char": { "name": "শিউলি", "photos": 4 },
+"alpona-tin": { "name": "আলপনা", "photos": 3 },
+"khilan": { "name": "খিলান", "photos": 1 },
+"tin-khilan": { "name": "তিন খিলান", "photos": 3 },
+"ghontar-khilan": { "name": "দুই খিলান", "photos": 2 },
+"pujo-dump": { "name": "পুজো ডাম্প", "photos": 4 },
+"pandal-hopping-grid": { "name": "প্যান্ডেল হপিং", "photos": 6 },
+"mosaic": { "name": "মোজাইক", "photos": 5 },
+"film-roll": { "name": "ফিল্ম রোল", "photos": 4 },
+"photo-booth": { "name": "ফটো বুথ", "photos": 3 },
+"dui-roll": { "name": "দুটো রোল", "photos": 6 }
+```
+
+Checks that matter most for this set:
+
+- **Grids (7, 8, 9):** the gaps between frames must be visible in the debug sheet as separate red boxes. If two frames merge into one box, regenerate with wider gaps.
+- **Arches (4, 5, 6):** the pink area must follow the arch top; the pearls and gold lines stay outside it.
+- **Film strips (10, 11, 12):** the sprocket holes are too small to count as frames, which is fine. The count must still match.
