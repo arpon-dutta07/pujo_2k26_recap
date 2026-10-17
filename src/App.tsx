@@ -198,7 +198,6 @@ export function App() {
               <Results
                 photos={photos}
                 selected={selected}
-                setSelected={setSelected}
                 pickCount={pickCount}
                 onPickCount={changeCount}
                 stats={stats}

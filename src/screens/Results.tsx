@@ -1,24 +1,28 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { CheckIcon, CopyIcon, DownloadIcon, RestartIcon, ShareIcon, SwapIcon } from "../components/Icons";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CheckIcon, CopyIcon, DownloadIcon, EditIcon, RestartIcon, ShareIcon } from "../components/Icons";
 import { TiltCard } from "../components/TiltCard";
 import { EXPORT, LIMITS, PUJO_DAYS } from "../config";
+import { ExportSheet } from "../editor/ExportSheet";
+import { PageView } from "../editor/PageView";
+import { clearPhotoPreviews } from "../editor/photos";
+import { buildProject, historyReducer } from "../editor/project";
+import { Studio } from "../editor/Studio";
+import "../editor/studio.css";
+import { templateById } from "../editor/templates";
 import { bnNum } from "../lib/bn";
 import { captionIdeas } from "../lib/captions";
-import { dayLabel } from "../lib/days";
-import { THEMES, toJpeg, type ThemeId } from "../lib/render/draw";
-import { renderSlide } from "../lib/render/slide";
+import { DAY_ORDER, dayLabel } from "../lib/days";
+import { toJpeg } from "../lib/render/draw";
 import { renderStory } from "../lib/render/story";
-import { alternativesFor } from "../lib/select";
-import { canShareFiles, downloadBlob, downloadZip, shareFiles, type ExportFile } from "../lib/share";
+import { canShareFiles, downloadBlob, shareFiles } from "../lib/share";
 import { roastLines, type PujoStats } from "../lib/stats";
 import type { Photo } from "../lib/types";
 import { sceneLive } from "../three/store";
 
-type Tab = "carousel" | "story" | "captions";
+type Tab = "templates" | "story" | "captions";
 type Rendered = { url: string; blob: Blob };
-
-const pad = (n: number) => String(n).padStart(2, "0");
 
 function coverSubtitle(chosen: Photo[]): string {
   const keys = PUJO_DAYS.map((d) => d.key).filter((k) => chosen.some((p) => p.day === k));
@@ -30,75 +34,70 @@ function coverSubtitle(chosen: Photo[]): string {
 export function Results(props: {
   photos: Photo[];
   selected: string[];
-  setSelected: (ids: string[]) => void;
   pickCount: number;
   onPickCount: (n: number) => void;
   stats: PujoStats;
   onRestart: () => void;
 }) {
-  const { photos, selected, setSelected, pickCount, onPickCount, stats, onRestart } = props;
+  const { photos, selected, pickCount, onPickCount, stats, onRestart } = props;
   const byId = useMemo(() => new Map(photos.map((p) => [p.id, p])), [photos]);
   const chosen = useMemo(() => selected.map((id) => byId.get(id)!).filter(Boolean), [selected, byId]);
 
-  const [tab, setTab] = useState<Tab>("carousel");
-  const [theme, setTheme] = useState<ThemeId>("lalpar");
-  const [coverTitle, setCoverTitle] = useState("পুজো ২০২৬");
-  const [swapFor, setSwapFor] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("templates");
   const [toast, setToast] = useState<string | null>(null);
-  const [slides, setSlides] = useState<Record<string, Rendered>>({});
   const [story, setStory] = useState<Rendered | null>(null);
-  const cache = useRef(new Map<string, Rendered>());
+  const [extras, setExtras] = useState<Photo[]>([]);
+  const [studio, setStudio] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const showToast = useCallback((text: string) => {
     setToast(text);
     window.setTimeout(() => setToast((t) => (t === text ? null : t)), 2200);
   }, []);
 
+  // Every photo the studio may use: the analysed ones plus any added there.
+  const allById = useMemo(() => new Map([...photos, ...extras].map((p) => [p.id, p])), [photos, extras]);
+  const photo = useCallback((id: string) => allById.get(id), [allById]);
+  const rest = useMemo(() => {
+    const picked = new Set(selected);
+    const order = new Map(DAY_ORDER.map((d, i) => [d, i]));
+    return photos
+      .filter((p) => p.status !== "unreadable" && !picked.has(p.id))
+      .sort(
+        (a, b) =>
+          (order.get(a.day ?? "unknown") ?? 99) - (order.get(b.day ?? "unknown") ?? 99) ||
+          Number(a.status !== "ok") - Number(b.status !== "ok") ||
+          b.score - a.score,
+      );
+  }, [photos, selected]);
+
+  // The carousel the site builds on its own. Changing "কটা ছবি" builds it
+  // again (undo brings the old one back).
   const subtitle = useMemo(() => coverSubtitle(chosen), [chosen]);
-  const keys = useMemo(
-    () =>
-      chosen.map((p, i) => {
-        const edge = i === 0 || i === chosen.length - 1;
-        return `${p.id}|${theme}|${i === 0 ? `cover:${coverTitle}:${subtitle}` : "plain"}|${edge ? "edge" : ""}`;
-      }),
-    [chosen, theme, coverTitle, subtitle],
+  const [hist, dispatch] = useReducer(historyReducer, undefined, () => ({
+    past: [],
+    present: buildProject(chosen, "post", { title: "পুজো ২০২৬", subtitle }),
+    future: [],
+  }));
+  const built = useRef(selected);
+  useEffect(() => {
+    if (built.current === selected) return;
+    built.current = selected;
+    dispatch({ type: "set", project: buildProject(chosen, hist.present.format, { title: "পুজো ২০২৬", subtitle }) });
+    // only when the AI's choice changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+  const project = hist.present;
+
+  const extrasRef = useRef(extras);
+  extrasRef.current = extras;
+  useEffect(
+    () => () => {
+      extrasRef.current.forEach((p) => URL.revokeObjectURL(p.thumbUrl));
+      clearPhotoPreviews();
+    },
+    [],
   );
-
-  // Render slides one by one; each pops into the coverflow when ready.
-  useEffect(() => {
-    let alive = true;
-    const run = async () => {
-      for (let i = 0; i < chosen.length; i++) {
-        if (!alive) return;
-        const key = keys[i];
-        if (cache.current.has(key)) {
-          const hit = cache.current.get(key)!;
-          setSlides((s) => (s[key] ? s : { ...s, [key]: hit }));
-          continue;
-        }
-        const canvas = await renderSlide(chosen[i], {
-          theme,
-          index: i,
-          total: chosen.length,
-          cover: i === 0 ? { title: coverTitle, subtitle } : undefined,
-        });
-        const blob = await toJpeg(canvas, EXPORT.jpegQuality);
-        const r = { blob, url: URL.createObjectURL(blob) };
-        cache.current.set(key, r);
-        if (alive) setSlides((s) => ({ ...s, [key]: r }));
-      }
-    };
-    const id = window.setTimeout(run, 250);
-    return () => {
-      alive = false;
-      window.clearTimeout(id);
-    };
-  }, [keys, chosen, theme, coverTitle, subtitle]);
-
-  useEffect(() => {
-    const c = cache.current;
-    return () => c.forEach((r) => URL.revokeObjectURL(r.url));
-  }, []);
 
   const lines = useMemo(() => roastLines(stats), [stats]);
   const heroes = useMemo(() => [...chosen].sort((a, b) => b.score - a.score).slice(0, 3), [chosen]);
@@ -118,24 +117,7 @@ export function Results(props: {
     };
   }, [stats, lines, heroes]);
 
-  const ready = keys.every((k) => slides[k]);
-  const exportFiles: ExportFile[] = ready ? keys.map((k, i) => ({ name: `pujo-2026-${pad(i + 1)}.jpg`, blob: slides[k].blob })) : [];
   const captions = useMemo(() => captionIdeas(stats, chosen.length), [stats, chosen.length]);
-  const shareable = ready && canShareFiles(exportFiles.slice(0, 1));
-
-  const shareAll = async () => {
-    if (!ready) return;
-    if (canShareFiles(exportFiles)) {
-      const r = await shareFiles(exportFiles, captions[0]);
-      if (r === "failed") {
-        await downloadZip(exportFiles, "pujo-2026-carousel.zip");
-        showToast("শেয়ার হল না, ZIP নামিয়ে দিলাম");
-      }
-    } else {
-      await downloadZip(exportFiles, "pujo-2026-carousel.zip");
-      showToast("ZIP নেমে গেছে");
-    }
-  };
 
   const shareStory = async () => {
     if (!story) return;
@@ -156,10 +138,7 @@ export function Results(props: {
     }
   };
 
-  const replace = (oldId: string, newId: string) => {
-    setSelected(selected.map((id) => (id === oldId ? newId : id)));
-    setSwapFor(null);
-  };
+  const slideCount = project.pages.reduce((n, p) => n + (templateById(p.template).span ?? 1), 0);
 
   return (
     <div className="results">
@@ -174,7 +153,7 @@ export function Results(props: {
         <div className="tabs" role="tablist">
           {(
             [
-              ["carousel", "ক্যারোসেল"],
+              ["templates", "টেমপ্লেট"],
               ["story", "পুজোর হিসেব"],
               ["captions", "ক্যাপশন"],
             ] as const
@@ -194,11 +173,18 @@ export function Results(props: {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.28 }}
           >
-            {tab === "carousel" && (
+            {tab === "templates" && (
               <>
-                <div className="toolbar">
+                <div className="proj-intro">
+                  <div>
+                    <h3>তোমার carousel সাজানো আছে</h3>
+                    <p>
+                      AI সেরা ছবিগুলো টেমপ্লেটে বসিয়ে দিয়েছে। যেকোনো পাতায় ট্যাপ করে বদলাও: ছবি, টেমপ্লেট, স্টিকার, লেখা। পছন্দ না হলে নিজের ফোন থেকেও
+                      ছবি দিতে পারো।
+                    </p>
+                  </div>
                   <div className="field">
-                    <span>কটা ছবি</span>
+                    <span>AI কটা ছবি বাছবে</span>
                     <div className="pills">
                       {LIMITS.pickOptions.map((n) => (
                         <button key={n} className="pill" aria-pressed={pickCount === n} onClick={() => onPickCount(n)}>
@@ -207,89 +193,41 @@ export function Results(props: {
                       ))}
                     </div>
                   </div>
-                  <div className="field">
-                    <span>ফ্রেম</span>
-                    <div className="pills">
-                      {Object.values(THEMES).map((t) => (
-                        <button key={t.id} className="pill" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
-                          {t.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <label className="field">
-                    <span>প্রথম ছবির লেখা</span>
-                    <input
-                      className="text-input"
-                      value={coverTitle}
-                      maxLength={18}
-                      onChange={(e) => setCoverTitle(e.target.value)}
-                    />
-                  </label>
                 </div>
 
-                <Coverflow>
-                  {chosen.map((p, i) => {
-                    const r = slides[keys[i]];
-                    return (
-                      <div className="slide" key={p.id}>
-                        <span className="slide-index">
-                          {bnNum(i + 1)}/{bnNum(chosen.length)}
-                        </span>
-                        <div className="slide-img">
-                          {r ? (
-                            <motion.img
-                              key={r.url}
-                              src={r.url}
-                              alt={`স্লাইড ${bnNum(i + 1)}`}
-                              initial={{ opacity: 0, scale: 1.04 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.4 }}
-                            />
-                          ) : (
-                            <>
-                              <img className="placeholder" src={p.thumbUrl} alt="" />
-                              <div className="busy">সাজাচ্ছি…</div>
-                            </>
-                          )}
-                        </div>
-                        <div className="slide-tools">
-                          <button className="slide-tool" onClick={() => setSwapFor(p.id)}>
-                            <SwapIcon /> বদলাও
-                          </button>
-                          <button
-                            className="slide-tool"
-                            disabled={!r}
-                            onClick={() => r && downloadBlob(r.blob, `pujo-2026-${pad(i + 1)}.jpg`)}
-                          >
-                            <DownloadIcon /> নামাও
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </Coverflow>
+                <div className="proj-strip">
+                  {project.pages.map((p, i) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className="proj-page"
+                      style={{ ["--span" as string]: templateById(p.template).span ?? 1 }}
+                      onClick={() => setStudio(i)}
+                      aria-label={`পাতা ${bnNum(i + 1)} এডিট করো`}
+                    >
+                      <PageView
+                        page={p}
+                        format={project.format}
+                        photo={photo}
+                        edge={{ first: i === 0, last: i === project.pages.length - 1 }}
+                      />
+                      <span className="proj-label">
+                        {bnNum(i + 1)}. {templateById(p.template).name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
 
                 <div className="actions">
-                  <motion.button
-                    className="btn btn-primary"
-                    disabled={!ready}
-                    onClick={shareAll}
-                    whileHover={{ scale: ready ? 1.03 : 1 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <ShareIcon />
-                    {!ready ? "সাজানো চলছে…" : shareable ? "সব ছবি শেয়ার করো" : "সব ছবি নামাও (ZIP)"}
+                  <motion.button className="btn btn-primary" onClick={() => setStudio(0)} whileTap={{ scale: 0.97 }}>
+                    <EditIcon />
+                    এডিটরে খোলো
                   </motion.button>
-                  {shareable && (
-                    <button className="btn btn-ghost" onClick={() => downloadZip(exportFiles, "pujo-2026-carousel.zip")}>
-                      <DownloadIcon /> ZIP নামাও
-                    </button>
-                  )}
+                  <button className="btn btn-ghost" onClick={() => setExporting(true)}>
+                    <ShareIcon /> এখনই শেয়ার করো ({bnNum(slideCount)}টা ছবি)
+                  </button>
                 </div>
-                <p className="note">
-                  Instagram-এ পোস্ট করার সময় trending গান লাগিয়ে দিও। প্রথম ছবিটাই cover, তাই সেরাটা সামনে রেখেছি।
-                </p>
+                <p className="note">Instagram-এ পোস্ট করার সময় trending গান লাগিয়ে দিও। প্রথম ছবিটাই cover, তাই সেরাটা সামনে রেখেছি।</p>
               </>
             )}
 
@@ -349,16 +287,35 @@ export function Results(props: {
         </div>
       </motion.div>
 
-      <AnimatePresence>
-        {swapFor && (
-          <SwapSheet
-            key="sheet"
-            options={alternativesFor(photos, selected, swapFor)}
-            onPick={(id) => replace(swapFor, id)}
-            onClose={() => setSwapFor(null)}
-          />
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <>
+          <AnimatePresence>
+            {studio !== null && (
+              <Studio
+                key="studio"
+                project={project}
+                dispatch={dispatch}
+                canUndo={hist.past.length > 0}
+                canRedo={hist.future.length > 0}
+                photo={photo}
+                ai={chosen}
+                mine={extras}
+                rest={rest}
+                onAddPhotos={(list) => setExtras((x) => [...list, ...x])}
+                caption={captions[0]}
+                startPage={studio}
+                onClose={() => setStudio(null)}
+              />
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {exporting && (
+              <ExportSheet key="export" project={project} photo={photo} caption={captions[0]} onClose={() => setExporting(false)} onToast={showToast} />
+            )}
+          </AnimatePresence>
+        </>,
+        document.body,
+      )}
 
       <AnimatePresence>
         {toast && (
@@ -416,101 +373,5 @@ function RingStage({ count }: { count: number }) {
         <p>টেনে ঘোরাও · নিচে Instagram-রেডি ছবি</p>
       </motion.div>
     </div>
-  );
-}
-
-// Horizontal scroller where off-centre slides turn away in 3D.
-function Coverflow({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const update = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    const mid = el.scrollLeft + el.clientWidth / 2;
-    for (const child of Array.from(el.children) as HTMLElement[]) {
-      const center = child.offsetLeft + child.offsetWidth / 2;
-      const d = (center - mid) / child.offsetWidth;
-      const ad = Math.min(Math.abs(d), 2.5);
-      child.style.transform = `rotateY(${Math.max(-50, Math.min(50, -d * 32))}deg) translateZ(${-ad * 60}px) scale(${1 - ad * 0.06})`;
-      child.style.opacity = String(1 - Math.min(ad, 2.5) * 0.18);
-      child.style.zIndex = String(100 - Math.round(ad * 10));
-    }
-  }, []);
-
-  useLayoutEffect(() => {
-    update();
-    const el = ref.current;
-    if (!el) return;
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, [update]);
-
-  useEffect(() => {
-    update();
-  });
-
-  return (
-    <div className="coverflow" ref={ref}>
-      {children}
-    </div>
-  );
-}
-
-function SwapSheet({ options, onPick, onClose }: { options: Photo[]; onPick: (id: string) => void; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  return (
-    <>
-      <motion.div className="sheet-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-      <motion.div
-        className="sheet"
-        role="dialog"
-        aria-label="ছবি বদলাও"
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 260 }}
-      >
-        <h3>কোনটা দেবে?</h3>
-        <p>একই দিনের ভালো ছবিগুলো আগে দেখাচ্ছি।</p>
-        {options.length ? (
-          <div className="alt-grid">
-            {options.map((p, i) => (
-              <motion.button
-                key={p.id}
-                className="alt"
-                onClick={() => onPick(p.id)}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.03 }}
-                whileHover={{ scale: 1.04 }}
-              >
-                <img src={p.thumbUrl} alt="" loading="lazy" />
-                {dayLabel(p.day) && <span>{dayLabel(p.day)}</span>}
-              </motion.button>
-            ))}
-          </div>
-        ) : (
-          <div className="empty">আর কোনো ছবি বাকি নেই।</div>
-        )}
-        <div className="actions" style={{ marginTop: 18 }}>
-          <button className="btn btn-ghost btn-small" onClick={onClose}>
-            থাক, বন্ধ করো
-          </button>
-        </div>
-      </motion.div>
-    </>
   );
 }

@@ -9,8 +9,15 @@ import "@fontsource/tiro-bangla/400.css";
 import "./styles.css";
 import { App } from "./App";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const root = createRoot(document.getElementById("root")!);
+
+// Dev-only template and sticker sheet: /?gallery
+if (import.meta.env.DEV && new URLSearchParams(location.search).has("gallery")) {
+  void import("./dev/Gallery").then(({ Gallery }) => root.render(<Gallery />));
+} else {
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}

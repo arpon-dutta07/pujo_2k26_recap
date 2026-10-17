@@ -93,7 +93,6 @@ const YELLOW = "#ffc93c";
 const CLAY = "#a9532b";
 const CLAY_D = "#7a3a1d";
 const TEAL = "#2f8c8c";
-const TEAL_D = "#1f6262";
 const WOOD = "#9a5a30";
 
 const o = (d: string, fill: string, extra: Partial<Prim> = {}): Prim => ({ d, fill, stroke: INK, sw: 3, ...extra });

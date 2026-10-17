@@ -260,3 +260,34 @@ export function finalize(photos: Photo[]) {
     }
   }
 }
+
+// One photo the visitor adds later, in the template studio. Same measurements
+// as the main run, without the duplicate check; it always counts as usable.
+export async function analyzeExtra(file: File, id: string, index: number): Promise<Photo | null> {
+  const [exif, bmp] = await Promise.all([readExif(file), decodeBitmap(file, LIMITS.analysisSize).catch(() => null)]);
+  if (!bmp) return null;
+  const photo = emptyPhoto(file, index, exif);
+  photo.id = id;
+  photo.width = bmp.width;
+  photo.height = bmp.height;
+  const analysis = drawFit(bmp, LIMITS.analysisSize);
+  const thumb = drawFit(bmp, LIMITS.thumbSize);
+  bmp.close();
+  const m = measure(analysis);
+  photo.hash = m.hash;
+  photo.sharpness = m.sharpness;
+  photo.brightness = m.brightness;
+  const model = await loadFaceModel();
+  if (model) {
+    try {
+      photo.faces = detectFaces(model, analysis);
+    } catch {
+      // keep going without faces
+    }
+  }
+  photo.kind = kindOf(photo);
+  photo.status = "ok";
+  photo.score = 1;
+  photo.thumbUrl = URL.createObjectURL(canvasToJpeg(thumb, 0.8));
+  return photo;
+}

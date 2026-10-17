@@ -160,11 +160,16 @@ function placeholder(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
   ctx.fill();
 }
 
+// Thumbnails are painted one after another with a pause in between, so a
+// panel full of them never freezes a scroll.
+let thumbQueue: Promise<unknown> = Promise.resolve();
+
 export function templateThumb(templateId: string, format: Format, width = 360): Promise<string> {
   const key = `${templateId}:${format}:${width}`;
   let hit = thumbCache.get(key);
   if (!hit) {
-    hit = (async () => {
+    hit = thumbQueue.then(async () => {
+      await new Promise((r) => setTimeout(r, 16));
       await ensureFonts();
       const def = templateById(templateId);
       const { W, H } = pageSize(format, def);
@@ -201,7 +206,8 @@ export function templateThumb(templateId: string, format: Format, width = 360): 
         drawText(ctx, { id: "", rotate: 0, align: "center", style: "plain", ...t }, t.text);
       }
       return toBlobUrl(c, "image/jpeg", 0.86);
-    })();
+    });
+    thumbQueue = hit.catch(() => undefined);
     thumbCache.set(key, hit);
   }
   return hit;

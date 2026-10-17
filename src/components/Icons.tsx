@@ -106,3 +106,123 @@ export const FrameArt = (p: P) => (
     <path d="m24 46 8-9 6 6 4-4 8 7" />
   </svg>
 );
+
+// ---------- template studio ----------
+
+export const CloseIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+
+export const BackIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M15 5 8 12l7 7" />
+  </svg>
+);
+
+export const UndoIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M9 14 4 9l5-5" />
+    <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  </svg>
+);
+
+export const RedoIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="m15 14 5-5-5-5" />
+    <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
+  </svg>
+);
+
+export const PlusIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const TrashIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M4.5 7h15" />
+    <path d="M9.5 7V4.8c0-.7.6-1.3 1.3-1.3h2.4c.7 0 1.3.6 1.3 1.3V7" />
+    <path d="M6.5 7l.9 11.6A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.9L17.5 7" />
+  </svg>
+);
+
+export const FlipIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M12 3v18" strokeDasharray="2 2.5" />
+    <path d="M9 7 4 17h5z" />
+    <path d="M15 7l5 10h-5z" />
+  </svg>
+);
+
+export const FrontIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5h-8A1.5 1.5 0 0 0 4 5v8a1.5 1.5 0 0 0 1.5 1.5H6" />
+  </svg>
+);
+
+export const TextIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M5 6.5V5h14v1.5" />
+    <path d="M12 5v14" />
+    <path d="M9 19h6" />
+  </svg>
+);
+
+export const StickerIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M20 12.5V6.5A2.5 2.5 0 0 0 17.5 4h-11A2.5 2.5 0 0 0 4 6.5v11A2.5 2.5 0 0 0 6.5 20h6z" />
+    <path d="M20 12.5 12.5 20v-5a2.5 2.5 0 0 1 2.5-2.5z" />
+    <path d="M8.5 10h.01M14.5 10h.01" />
+  </svg>
+);
+
+export const LayoutIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="4" y="3.5" width="16" height="17" rx="2.5" />
+    <path d="M4 12h16M12 12v8.5" />
+  </svg>
+);
+
+export const RotateIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M20 12a8 8 0 1 1-2.4-5.7" />
+    <path d="M20 4v4.5h-4.5" />
+  </svg>
+);
+
+export const WandIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="m4 20 11-11" />
+    <path d="m13 7 2 2" />
+    <path d="M17.5 3.5v3M16 5h3M19.5 10v2M18.5 11h2M8.5 3v2M7.5 4h2" />
+  </svg>
+);
+
+export const FitIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" />
+  </svg>
+);
+
+export const ArrowLeftIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </svg>
+);
+
+export const ArrowRightIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+
+export const EditIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M4 20h4L19 9l-4-4L4 16z" />
+    <path d="m13.5 6.5 4 4" />
+  </svg>
+);
