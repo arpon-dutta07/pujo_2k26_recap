@@ -69,8 +69,11 @@ export type TemplateDef = {
   id: string;
   name: string;
   span?: number; // slides wide; > 1 is a seamless panorama
+  format?: Format;
+  src?: string;
+  overlaySrc?: Partial<Record<Format, string>>;
   layout: (W: number, H: number) => TemplateLayout;
-  paint: Painter; // under the photos
+  paint?: Painter; // under the photos
   over?: Painter; // above the photos (frame edges, lace)
 };
 

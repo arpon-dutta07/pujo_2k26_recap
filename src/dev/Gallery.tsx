@@ -10,7 +10,7 @@ import type { Format } from "../editor/types";
 function Thumb({ id, format, span }: { id: string; format: Format; span: number }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
-    void templateThumb(id, format, 540).then(setUrl);
+    void templateThumb(id, format).then(setUrl);
   }, [id, format]);
   return url ? <img src={url} alt={id} style={{ width: 300 * span, display: "block" }} /> : <div style={{ width: 300 * span, height: 300 }} />;
 }

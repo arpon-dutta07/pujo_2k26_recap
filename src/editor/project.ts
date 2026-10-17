@@ -3,7 +3,7 @@
 import { focusOf } from "../lib/render/draw";
 import type { Photo } from "../lib/types";
 import { pageSize } from "./render";
-import { templateById } from "./templates";
+import { templateById, templatesFor } from "./templates";
 import { uid, type Fill, type Format, type Page, type Project, type SlotDef, type StickerItem, type TextItem } from "./types";
 
 export const fillFor = (p: Photo): Fill => {
@@ -111,35 +111,38 @@ export function autofill(project: Project, pool: Photo[]): Project {
   return { ...project, pages };
 }
 
-// Frames used one after another while building a carousel: one photo, then two.
-const SINGLES = ["lalpar", "velvet", "shola", "galicha", "raat"];
-const DOUBLES = ["padma", "golapi", "maroon"];
-const MAX_PAGES = 10;
+// Image-based template grouping for carousel auto-builder per ANTIGRAVITY.md Task A
+const MAX_PAGES = 8;
 
-// The carousel the site makes on its own: a cover, then the photos in time
-// order across a mix of frames, and a grid of the best nine at the end.
 export function buildProject(chosen: Photo[], format: Format, cover: { title: string; subtitle: string }): Project {
-  if (!chosen.length) return { format, pages: [makePage("arch", format)] };
-  const first = makePage("arch", format, [chosen[0]]);
-  first.texts = first.texts.map((t, i) => (i === 0 ? { ...t, text: cover.title } : i === 1 ? { ...t, text: cover.subtitle } : t));
+  const live = templatesFor(format);
+  if (!live.length) {
+    return { format, pages: [] };
+  }
+
+  // Cover template: prefer agomoni or durga-memory as cover
+  const coverDef = live.find((t) => t.id === "agomoni") || live[0];
+  const coverSlotsCount = coverDef.layout(1080, format === "story" ? 1920 : 1350).slots.length;
+  const firstPhotos = chosen.slice(0, coverSlotsCount);
+  const first = makePage(coverDef.id, format, firstPhotos);
+
+  void cover;
+
   const pages: Page[] = [first];
-  const rest = chosen.slice(1);
-  // With plenty of photos, a panorama right after the cover: the swipe people remember.
-  if (rest.length >= 9) pages.push(makePage("padma-pano", format, rest.splice(0, 4)));
-  const wantGrid = chosen.length >= 6;
-  const room = MAX_PAGES - 1 - (wantGrid ? 1 : 0);
-  let singles = 0;
-  let doubles = 0;
-  while (rest.length && pages.length <= room) {
-    const double = DOUBLES.length > 0 && rest.length >= 2 && pages.length % 2 === 0;
-    if (double) pages.push(makePage(DOUBLES[doubles++ % DOUBLES.length], format, rest.splice(0, 2)));
-    else pages.push(makePage(SINGLES[singles++ % SINGLES.length], format, rest.splice(0, 1)));
+  const rest = chosen.slice(coverSlotsCount);
+
+  // Pool of templates for subsequent pages
+  const otherTemplates = live.filter((t) => t.id !== coverDef.id);
+  let tIdx = 0;
+
+  while (rest.length > 0 && pages.length < MAX_PAGES && tIdx < otherTemplates.length) {
+    const t = otherTemplates[tIdx];
+    tIdx++;
+    const slotCount = t.layout(1080, format === "story" ? 1920 : 1350).slots.length || 1;
+    const pagePhotos = rest.splice(0, slotCount);
+    pages.push(makePage(t.id, format, pagePhotos));
   }
-  if (wantGrid) {
-    const best = [...chosen].sort((a, b) => b.score - a.score).slice(0, 9);
-    const ordered = [...best.slice(1, 5), best[0], ...best.slice(5)];
-    pages.push(makePage("sara9", format, ordered));
-  }
+
   return { format, pages };
 }
 
