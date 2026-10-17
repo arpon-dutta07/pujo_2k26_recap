@@ -1,5 +1,6 @@
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import { LIMITS } from "../config";
+import type { Measured, WorkerIn, WorkerOut } from "./analysis-protocol";
 import { pujoDayOf } from "./days";
 import { readExif, type ExifInfo } from "./exif";
 import { detectFaces, loadFaceModel } from "./faces";
@@ -8,9 +9,39 @@ import type { Photo, Progress } from "./types";
 
 export type AnalyzeCallbacks = {
   onProgress: (p: Progress) => void;
-  // Fired as soon as one photo is measured, so the 3D funnel can show it.
-  onPhoto: (photo: Photo, thumb: HTMLCanvasElement) => void;
+  // Fired as soon as one photo is measured, so the 3D funnel and the live
+  // wall can show it. `card` is a small picture of it for the 3D cards.
+  onPhoto: (photo: Photo, card: ImageBitmap | HTMLCanvasElement) => void;
 };
+
+// ---------- the analysis worker ----------
+// Decoding, measuring and the face model run in analysis.worker.ts, so the
+// page never freezes (the face model alone used to block it for seconds).
+// Browsers without OffscreenCanvas in workers get the same work done here.
+
+let worker: Worker | null | undefined;
+let nextId = 1;
+
+function getWorker(): Worker | null {
+  if (worker !== undefined) return worker;
+  worker = null;
+  if (typeof Worker === "undefined" || typeof OffscreenCanvas === "undefined") return null;
+  try {
+    worker = new Worker(new URL("./analysis.worker.ts", import.meta.url), { type: "module" });
+  } catch {
+    worker = null;
+  }
+  return worker;
+}
+
+const send = (w: Worker, m: WorkerIn) => w.postMessage(m);
+
+// Start the face model download while people read the landing page.
+export function warmAnalyzer() {
+  const w = getWorker();
+  if (w) send(w, { type: "warm" });
+  else void loadFaceModel();
+}
 
 // A macrotask break so the 3D scene can draw a frame. MessageChannel instead of
 // setTimeout: background tabs clamp timers to 1 s, which made a 25-photo run take 27 s.
@@ -76,20 +107,147 @@ const median = (xs: number[]) => {
   return s[Math.floor(s.length / 2)];
 };
 
+function applyMeasured(photo: Photo, m: Measured) {
+  photo.width = m.width;
+  photo.height = m.height;
+  photo.hash = m.hash;
+  photo.sharpness = m.sharpness;
+  photo.brightness = m.brightness;
+  photo.faces = m.faces;
+  photo.kind = kindOf(photo);
+  photo.thumbUrl = URL.createObjectURL(m.thumb);
+}
+
+// Live, provisional verdict for the animation. finalize() decides for real.
+function liveVerdict(photo: Photo, photos: Photo[], sharpSeen: number[], progress: Progress) {
+  const recent = photos.slice(Math.max(0, photos.length - 26), photos.length - 1);
+  const dupe = recent.find((q) => q.status !== "unreadable" && isNearDuplicate(photo, q));
+  const med = median(sharpSeen);
+  if (dupe) {
+    photo.status = "duplicate";
+    progress.duplicates++;
+  } else if (sharpSeen.length >= 5 && photo.sharpness < Math.max(18, 0.32 * med)) {
+    photo.status = "blurry";
+    progress.blurry++;
+  } else {
+    photo.status = "ok";
+  }
+}
+
+function wrapUp(photos: Photo[], progress: Progress, cb: AnalyzeCallbacks, total: number) {
+  progress.phase = "choosing";
+  progress.done = total;
+  progress.total = total;
+  cb.onProgress({ ...progress });
+  finalize(photos);
+  progress.duplicates = photos.filter((p) => p.status === "duplicate").length;
+  progress.blurry = photos.filter((p) => p.status === "blurry").length;
+  progress.phase = "done";
+  cb.onProgress({ ...progress });
+}
+
+const freshProgress = (total: number): Progress => ({
+  phase: "reading",
+  done: 0,
+  total,
+  duplicates: 0,
+  blurry: 0,
+  faces: 0,
+  unreadable: 0,
+});
+
 export async function analyzePhotos(files: File[], cb: AnalyzeCallbacks, signal?: AbortSignal): Promise<Photo[]> {
+  const w = getWorker();
+  if (w) {
+    const out = await analyzeInWorker(w, files, cb, signal);
+    if (out) return out;
+  }
+  return analyzeHere(files, cb, signal);
+}
+
+// Resolves null when the worker cannot do it before any photo came back,
+// so the caller can fall back to the page.
+function analyzeInWorker(w: Worker, files: File[], cb: AnalyzeCallbacks, signal?: AbortSignal): Promise<Photo[] | null> {
+  return new Promise((resolve, reject) => {
+    const id = nextId++;
+    const progress = freshProgress(files.length);
+    const photos: Photo[] = [];
+    const sharpSeen: number[] = [];
+    cb.onProgress({ ...progress });
+
+    const stop = () => {
+      w.removeEventListener("message", onMessage);
+      w.removeEventListener("error", onError);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onAbort = () => {
+      send(w, { type: "cancel", id });
+      stop();
+      reject(new DOMException("aborted", "AbortError"));
+    };
+    const onError = (e: ErrorEvent) => {
+      stop();
+      if (!photos.length) resolve(null);
+      else reject(e.error ?? new Error(e.message));
+    };
+    const onMessage = (e: MessageEvent<WorkerOut>) => {
+      const m = e.data;
+      if (m.id !== id) return;
+      if (m.type === "unsupported") {
+        stop();
+        if (!photos.length) resolve(null);
+        else reject(new Error("analysis worker stopped"));
+      } else if (m.type === "photo") {
+        const photo = emptyPhoto(files[m.index], m.index, m.exif);
+        photos.push(photo);
+        if (!m.data) {
+          photo.status = "unreadable";
+          progress.unreadable++;
+        } else {
+          applyMeasured(photo, m.data);
+          if (photo.faces?.count) progress.faces++;
+          sharpSeen.push(photo.sharpness);
+          liveVerdict(photo, photos, sharpSeen, progress);
+          cb.onPhoto(photo, m.card!);
+        }
+        progress.phase = "looking";
+        progress.done = photos.length;
+        cb.onProgress({ ...progress });
+      } else if (m.type === "faces-start") {
+        progress.phase = "faces";
+        progress.done = 0;
+        progress.total = m.total;
+        cb.onProgress({ ...progress });
+      } else if (m.type === "faces") {
+        const p = photos[m.index];
+        if (p && m.faces) {
+          p.faces = m.faces;
+          if (m.faces.count) progress.faces++;
+          p.kind = kindOf(p);
+        }
+        progress.done++;
+        cb.onProgress({ ...progress });
+      } else if (m.type === "done") {
+        stop();
+        wrapUp(photos, progress, cb, files.length);
+        resolve(photos);
+      }
+    };
+
+    w.addEventListener("message", onMessage);
+    w.addEventListener("error", onError);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    send(w, { type: "run", id, files });
+  });
+}
+
+// The same work on the page itself, for browsers without the worker.
+async function analyzeHere(files: File[], cb: AnalyzeCallbacks, signal?: AbortSignal): Promise<Photo[]> {
   const modelPromise = loadFaceModel();
   let model: FaceLandmarker | null = null;
   void modelPromise.then((m) => (model = m));
 
-  const progress: Progress = {
-    phase: "reading",
-    done: 0,
-    total: files.length,
-    duplicates: 0,
-    blurry: 0,
-    faces: 0,
-    unreadable: 0,
-  };
+  const progress = freshProgress(files.length);
   cb.onProgress({ ...progress });
 
   const photos: Photo[] = [];
@@ -132,20 +290,7 @@ export async function analyzePhotos(files: File[], cb: AnalyzeCallbacks, signal?
       photo.kind = kindOf(photo);
 
       photo.thumbUrl = URL.createObjectURL(canvasToJpeg(thumb, 0.8));
-
-      // Live, provisional verdict for the animation. finalize() decides for real.
-      const recent = photos.slice(Math.max(0, photos.length - 26), photos.length - 1);
-      const dupe = recent.find((q) => q.status !== "unreadable" && isNearDuplicate(photo, q));
-      const med = median(sharpSeen);
-      if (dupe) {
-        photo.status = "duplicate";
-        progress.duplicates++;
-      } else if (sharpSeen.length >= 5 && photo.sharpness < Math.max(18, 0.32 * med)) {
-        photo.status = "blurry";
-        progress.blurry++;
-      } else {
-        photo.status = "ok";
-      }
+      liveVerdict(photo, photos, sharpSeen, progress);
       cb.onPhoto(photo, thumb);
     }
 
@@ -183,15 +328,7 @@ export async function analyzePhotos(files: File[], cb: AnalyzeCallbacks, signal?
     }
   }
 
-  progress.phase = "choosing";
-  progress.done = files.length;
-  progress.total = files.length;
-  cb.onProgress({ ...progress });
-  finalize(photos);
-  progress.duplicates = photos.filter((p) => p.status === "duplicate").length;
-  progress.blurry = photos.filter((p) => p.status === "blurry").length;
-  progress.phase = "done";
-  cb.onProgress({ ...progress });
+  wrapUp(photos, progress, cb, files.length);
   return photos;
 }
 
@@ -264,6 +401,28 @@ export function finalize(photos: Photo[]) {
 // One photo the visitor adds later, in the template studio. Same measurements
 // as the main run, without the duplicate check; it always counts as usable.
 export async function analyzeExtra(file: File, id: string, index: number): Promise<Photo | null> {
+  const w = getWorker();
+  if (w) {
+    const reply = await new Promise<Extract<WorkerOut, { type: "one" | "unsupported" }>>((resolve) => {
+      const req = nextId++;
+      const onMessage = (e: MessageEvent<WorkerOut>) => {
+        if (e.data.id !== req || (e.data.type !== "one" && e.data.type !== "unsupported")) return;
+        w.removeEventListener("message", onMessage);
+        resolve(e.data);
+      };
+      w.addEventListener("message", onMessage);
+      send(w, { type: "one", id: req, file });
+    });
+    if (reply.type === "one") {
+      if (!reply.data) return null;
+      const photo = emptyPhoto(file, index, reply.exif);
+      photo.id = id;
+      applyMeasured(photo, reply.data);
+      photo.status = "ok";
+      photo.score = 1;
+      return photo;
+    }
+  }
   const [exif, bmp] = await Promise.all([readExif(file), decodeBitmap(file, LIMITS.analysisSize).catch(() => null)]);
   if (!bmp) return null;
   const photo = emptyPhoto(file, index, exif);

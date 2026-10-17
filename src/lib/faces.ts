@@ -1,5 +1,7 @@
 // The only real AI model on the site: Google's MediaPipe Face Landmarker,
 // served from our own /public folder and run on the visitor's GPU (or CPU).
+// Normally it lives in the analysis worker (analysis.worker.ts), so the page
+// never waits on it.
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import type { FaceInfo } from "./types";
 
@@ -22,10 +24,14 @@ export function loadFaceModel(): Promise<FaceLandmarker | null> {
           minFacePresenceConfidence: 0.5,
           outputFaceBlendshapes: true,
         });
+      // In the analysis worker the CPU is the better choice: measured on 50
+      // photos it was twice as fast as the GPU and never fought the 3D scene
+      // for the graphics card. On the page (old browsers) try the GPU first.
+      const order: Array<"GPU" | "CPU"> = typeof document === "undefined" ? ["CPU", "GPU"] : ["GPU", "CPU"];
       try {
-        return await make("GPU");
+        return await make(order[0]);
       } catch {
-        return await make("CPU");
+        return await make(order[1]);
       }
     } catch (err) {
       console.warn("[faces] model unavailable, continuing without it", err);
@@ -38,8 +44,8 @@ export function loadFaceModel(): Promise<FaceLandmarker | null> {
 const EYES_CLOSED = 0.5;
 const MIN_FACE_AREA = 0.0015;
 
-export function detectFaces(model: FaceLandmarker, canvas: HTMLCanvasElement): FaceInfo {
-  const result = model.detect(canvas);
+export function detectFaces(model: FaceLandmarker, image: TexImageSource): FaceInfo {
+  const result = model.detect(image);
   const boxes: FaceInfo["boxes"] = [];
   let eyesClosed = 0;
   let smileSum = 0;

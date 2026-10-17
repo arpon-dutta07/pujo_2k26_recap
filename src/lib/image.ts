@@ -12,15 +12,24 @@ export async function decodeBitmap(file: Blob, targetWidth?: number): Promise<Im
   return createImageBitmap(file);
 }
 
-export function drawFit(src: CanvasImageSource & { width: number; height: number }, maxSide: number, canvas?: HTMLCanvasElement) {
+// The same helpers run on the page and in the analysis worker, which only
+// has OffscreenCanvas.
+export type AnyCanvas = HTMLCanvasElement | OffscreenCanvas;
+
+const ctx2d = (c: AnyCanvas) => (c as HTMLCanvasElement).getContext("2d", { willReadFrequently: true })!;
+
+export function drawFit<C extends AnyCanvas = HTMLCanvasElement>(
+  src: CanvasImageSource & { width: number; height: number },
+  maxSide: number,
+  canvas?: C,
+): C {
   const scale = Math.min(1, maxSide / Math.max(src.width, src.height));
   const w = Math.max(1, Math.round(src.width * scale));
   const h = Math.max(1, Math.round(src.height * scale));
-  const c = canvas ?? document.createElement("canvas");
+  const c = canvas ?? ((typeof document === "undefined" ? new OffscreenCanvas(w, h) : document.createElement("canvas")) as C);
   c.width = w;
   c.height = h;
-  const ctx = c.getContext("2d", { willReadFrequently: true })!;
-  ctx.drawImage(src, 0, 0, w, h);
+  ctx2d(c).drawImage(src, 0, 0, w, h);
   return c;
 }
 
@@ -36,9 +45,9 @@ export function canvasToJpeg(c: HTMLCanvasElement, quality = 0.82): Blob {
 
 export type PixelStats = { hash: Uint8Array; sharpness: number; brightness: number };
 
-export function measure(canvas: HTMLCanvasElement): PixelStats {
+export function measure(canvas: AnyCanvas): PixelStats {
   const { width: w, height: h } = canvas;
-  const data = canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, w, h).data;
+  const data = ctx2d(canvas).getImageData(0, 0, w, h).data;
   const gray = new Float32Array(w * h);
   let sum = 0;
   for (let i = 0, p = 0; i < gray.length; i++, p += 4) {

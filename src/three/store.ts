@@ -5,7 +5,12 @@ import { useSyncExternalStore } from "react";
 export type SceneMode = "hero" | "processing" | "results";
 export type Verdict = "ok" | "blurry" | "duplicate";
 
-export type FeedItem = { canvas: HTMLCanvasElement; verdict: Verdict };
+// `canvas` is a small picture of the photo: an ImageBitmap from the analysis
+// worker, or a canvas when the page did the work itself.
+export type FeedItem = { canvas: ImageBitmap | HTMLCanvasElement; verdict: Verdict };
+
+export const releaseFeed = (items: FeedItem[]) =>
+  items.forEach((it) => "close" in it.canvas && it.canvas.close());
 
 type Shared = {
   mode: SceneMode;
@@ -32,14 +37,14 @@ export const ringRadius = (count: number, narrow: boolean) =>
 
 export function setScene(patch: Partial<Shared>) {
   shared = { ...shared, ...patch };
-  if (patch.mode && patch.mode !== "processing") sceneLive.feed.length = 0;
+  if (patch.mode && patch.mode !== "processing") releaseFeed(sceneLive.feed.splice(0));
   listeners.forEach((l) => l());
 }
 
 export function pushFeed(item: FeedItem) {
   sceneLive.feed.push(item);
   // The funnel shows a sample; never let the queue run away on fast machines.
-  if (sceneLive.feed.length > 24) sceneLive.feed.splice(0, sceneLive.feed.length - 24);
+  if (sceneLive.feed.length > 24) releaseFeed(sceneLive.feed.splice(0, sceneLive.feed.length - 24));
 }
 
 export function useScene(): Shared {

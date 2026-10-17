@@ -6,7 +6,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { flameAnchor } from "./Diya";
 import { damp } from "./glow";
-import { sceneLive, type SceneMode, type Verdict } from "./store";
+import { releaseFeed, sceneLive, type SceneMode, type Verdict } from "./store";
 import { CARD_H, CARD_W, makeSurface, paintPhoto, paintPlaceholder, type CardSurface } from "./textures";
 
 type SlotState = "orbit" | "travel" | "rise" | "burn" | "hidden";
@@ -164,6 +164,7 @@ export function CardPool({ count, mode }: { count: number; mode: SceneMode }) {
             const next = sceneLive.feed.shift();
             if (next) {
               paintPhoto(slot.surface, next.canvas, null);
+              releaseFeed([next]);
               slot.verdict = next.verdict;
               slot.state = "travel";
               slot.phase = 0;

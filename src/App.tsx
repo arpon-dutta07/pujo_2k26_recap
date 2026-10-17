@@ -2,12 +2,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DiyaIcon } from "./components/Icons";
 import { LIMITS, SITE } from "./config";
-import { analyzePhotos } from "./lib/analyze";
+import { analyzePhotos, warmAnalyzer } from "./lib/analyze";
 import { dayLabel } from "./lib/days";
 import { selectBest } from "./lib/select";
 import { computeStats } from "./lib/stats";
 import type { Photo, Progress } from "./lib/types";
-import { loadFaceModel } from "./lib/faces";
 import { Landing } from "./screens/Landing";
 import { Processing } from "./screens/Processing";
 import { Results } from "./screens/Results";
@@ -115,7 +114,7 @@ export function App() {
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (conn?.saveData || (conn?.effectiveType && conn.effectiveType !== "4g")) return;
     const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
-    idle(() => void loadFaceModel());
+    idle(() => warmAnalyzer());
   }, []);
 
   // Drag and drop anywhere on the landing page.
