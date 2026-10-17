@@ -1,0 +1,10 @@
+{
+  "agomoni": { "name": "আগমনী সুর", "photos": 2 },
+  "durga-memory": { "name": "শারদ স্মৃতি", "photos": 1, "tune": { "colour": 44, "reach": 14, "grow": 3 } },
+  "photo-strip": { "name": "পুজোর ফটোস্ট্রিপ", "photos": 3 },
+  "golden-puja": { "name": "আলোর রাত", "photos": 4 },
+  "durga-scrapbook": { "name": "শারদ কোলাজ", "photos": 4 },
+  "vintage-memory": { "name": "ভিন্টেজ পুজো", "photos": 4 },
+  "sharodiya-kolkata": { "name": "শারদীয়া কলকাতা", "photos": 4 },
+  "pujo-collage": { "name": "পুজোর কোলাজ", "photos": 5 }
+}

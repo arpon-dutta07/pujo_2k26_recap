@@ -72,6 +72,7 @@ export type TemplateDef = {
   format?: Format;
   src?: string;
   overlaySrc?: Partial<Record<Format, string>>;
+  thumbSrc?: Partial<Record<Format, string>>;
   layout: (W: number, H: number) => TemplateLayout;
   paint?: Painter; // under the photos
   over?: Painter; // above the photos (frame edges, lace)

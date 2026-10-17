@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { createPortal } from "react-dom";
 import { CheckIcon, CopyIcon, DownloadIcon, EditIcon, RestartIcon, ShareIcon } from "../components/Icons";
 import { TiltCard } from "../components/TiltCard";
-import { EXPORT, LIMITS, PUJO_DAYS } from "../config";
+import { EXPORT, LIMITS } from "../config";
 import { ExportSheet } from "../editor/ExportSheet";
 import { PageView } from "../editor/PageView";
 import { clearPhotoPreviews } from "../editor/photos";
@@ -13,7 +13,7 @@ import "../editor/studio.css";
 import { defaultFormat, templateById } from "../editor/templates";
 import { bnNum } from "../lib/bn";
 import { captionIdeas } from "../lib/captions";
-import { DAY_ORDER, dayLabel } from "../lib/days";
+import { DAY_ORDER } from "../lib/days";
 import { toJpeg } from "../lib/render/draw";
 import { renderStory } from "../lib/render/story";
 import { canShareFiles, downloadBlob, shareFiles } from "../lib/share";
@@ -23,13 +23,6 @@ import { sceneLive } from "../three/store";
 
 type Tab = "templates" | "story" | "captions";
 type Rendered = { url: string; blob: Blob };
-
-function coverSubtitle(chosen: Photo[]): string {
-  const keys = PUJO_DAYS.map((d) => d.key).filter((k) => chosen.some((p) => p.day === k));
-  if (keys.length >= 2) return `${dayLabel(keys[0])} থেকে ${dayLabel(keys[keys.length - 1])}`;
-  if (keys.length === 1) return dayLabel(keys[0])!;
-  return "শারদীয়া ২০২৬";
-}
 
 export function Results(props: {
   photos: Photo[];
@@ -73,17 +66,18 @@ export function Results(props: {
 
   // The carousel the site builds on its own. Changing "কটা ছবি" builds it
   // again (undo brings the old one back).
-  const subtitle = useMemo(() => coverSubtitle(chosen), [chosen]);
+  // Good photos the AI did not pick, best first: they top up a last page.
+  const spare = useMemo(() => rest.filter((p) => p.status === "ok").sort((a, b) => b.score - a.score), [rest]);
   const [hist, dispatch] = useReducer(historyReducer, undefined, () => ({
     past: [],
-    present: buildProject(chosen, defaultFormat(), { title: "পুজো ২০২৬", subtitle }),
+    present: buildProject(chosen, defaultFormat(), spare),
     future: [],
   }));
   const built = useRef(selected);
   useEffect(() => {
     if (built.current === selected) return;
     built.current = selected;
-    dispatch({ type: "set", project: buildProject(chosen, hist.present.format, { title: "পুজো ২০২৬", subtitle }) });
+    dispatch({ type: "set", project: buildProject(chosen, hist.present.format, spare) });
     // only when the AI's choice changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);

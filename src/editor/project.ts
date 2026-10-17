@@ -114,35 +114,32 @@ export function autofill(project: Project, pool: Photo[]): Project {
 // Image-based template grouping for carousel auto-builder per ANTIGRAVITY.md Task A
 const MAX_PAGES = 8;
 
-export function buildProject(chosen: Photo[], format: Format, cover: { title: string; subtitle: string }): Project {
+// The carousel the site makes on its own: the AI's picks in order, each
+// template used once (আগমনী সুর first). The last page is topped up with the
+// next best photos, or swapped for a template with fewer windows, so no
+// window is left empty.
+export function buildProject(chosen: Photo[], format: Format, spare: Photo[] = []): Project {
   const live = templatesFor(format);
-  if (!live.length) {
-    return { format, pages: [] };
+  if (!live.length) return { format, pages: [] };
+  const windows = (id: string) => layoutOf(id, format).layout.slots.length;
+  const first = live.find((t) => t.id === "agomoni") ?? live[0];
+  const unused = [first, ...live.filter((t) => t !== first)];
+  const queue = [...chosen];
+  const extra = spare.filter((p) => !chosen.includes(p));
+  const pages: Page[] = [];
+  while (queue.length && unused.length && pages.length < MAX_PAGES) {
+    let t = unused[0];
+    if (queue.length + extra.length < windows(t.id)) {
+      const fits = unused.filter((u) => windows(u.id) <= queue.length + extra.length);
+      if (!fits.length) break;
+      t = fits.reduce((a, b) => (windows(b.id) > windows(a.id) ? b : a));
+    }
+    unused.splice(unused.indexOf(t), 1);
+    const n = windows(t.id);
+    const photos = queue.splice(0, n);
+    while (photos.length < n && extra.length) photos.push(extra.shift()!);
+    pages.push(makePage(t.id, format, photos));
   }
-
-  // Cover template: prefer agomoni or durga-memory as cover
-  const coverDef = live.find((t) => t.id === "agomoni") || live[0];
-  const coverSlotsCount = coverDef.layout(1080, format === "story" ? 1920 : 1350).slots.length;
-  const firstPhotos = chosen.slice(0, coverSlotsCount);
-  const first = makePage(coverDef.id, format, firstPhotos);
-
-  void cover;
-
-  const pages: Page[] = [first];
-  const rest = chosen.slice(coverSlotsCount);
-
-  // Pool of templates for subsequent pages
-  const otherTemplates = live.filter((t) => t.id !== coverDef.id);
-  let tIdx = 0;
-
-  while (rest.length > 0 && pages.length < MAX_PAGES && tIdx < otherTemplates.length) {
-    const t = otherTemplates[tIdx];
-    tIdx++;
-    const slotCount = t.layout(1080, format === "story" ? 1920 : 1350).slots.length || 1;
-    const pagePhotos = rest.splice(0, slotCount);
-    pages.push(makePage(t.id, format, pagePhotos));
-  }
-
   return { format, pages };
 }
 

@@ -105,8 +105,9 @@ export async function templateLayers(templateId: string, format: Format): Promis
   return { bg: null, over: overlayUrl(templateId, format) };
 }
 
+// Small preview with plain paper windows (made by the template script).
 export function templateThumb(templateId: string, format: Format): Promise<string> {
-  return Promise.resolve(overlayUrl(templateId, format));
+  return Promise.resolve(templateById(templateId).thumbSrc?.[format] ?? overlayUrl(templateId, format));
 }
 
 // ---------- full-size export ----------
