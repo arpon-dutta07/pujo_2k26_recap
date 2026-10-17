@@ -6,3 +6,8 @@ dist
 public/mediapipe/wasm
 # private test photos for local runs
 test-photos
+# moodboard working files: debug sheets, style references, big PNG sources
+moodboard/debug/
+moodboard/references/
+moodboard/templates/*.png
+moodboard/stickers/
