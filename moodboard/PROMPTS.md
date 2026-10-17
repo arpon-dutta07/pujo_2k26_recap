@@ -13,10 +13,10 @@ For Antigravity (or any image model). Follow the steps exactly. The site turns t
 
 ### Steps
 
-1. Build each prompt as **STYLE (A or B) + SHEET RULES + that sheet's 9 subjects**, in the order given.
+1. Build each prompt as **STYLE (A or B) + SHEET RULES + that sheet's 9 subjects**, in the order given. Style C sheets use **STYLE C + SHEET RULES C + 6 subjects**.
 2. Generate it square, at the highest resolution available (2048x2048 if possible).
 3. Reject the image and regenerate if any of these is true:
-   - the count is not exactly 9
+   - the count is not exactly 9 (6 for Style C)
    - two stickers touch or overlap
    - the background is not flat green
    - there is a watermark
@@ -27,7 +27,7 @@ For Antigravity (or any image model). Follow the steps exactly. The site turns t
    { "s01-pujor-jinish": { "group": "পুজোর জিনিস", "names": ["শাঁখ", "ঘণ্টা", "পঞ্চপ্রদীপ", "ধুনুচি", "কোশাকুশি", "মঙ্গলঘট", "চামর", "সিঁদুর কৌটো", "প্রদীপের থালা"] } }
    ```
 6. Run `npm run stickers`.
-   - Open `moodboard/debug/stickers__<sheet id>.png`: you should see 9 magenta boxes with one sticker in each.
+   - Open `moodboard/debug/stickers__<sheet id>.png`: you should see 9 magenta boxes (6 for Style C) with one sticker in each.
    - If two stickers were merged into one box, or one sticker was split across two, regenerate the sheet with more space between the stickers.
 7. Run `npm run build`, then commit.
 
@@ -59,6 +59,29 @@ For Antigravity (or any image model). Follow the steps exactly. The site turns t
 | `s10-chhoto-shaj` | ছোট সাজ | A | red heart; gold outline heart; red ribbon bow; single white jasmine flower; gold four-point sparkle star; strip of washi tape with red block print; brass paper clip; blank torn paper note; postage stamp with a lotus |
 | `s11-collage-1` | কোলাজ | B | mehndi hand holding a pink lotus; white dove in flight; sitar; ornate gold hand mirror; white swan figurine; pair of embroidered juttis; gramophone; cluster of pink lotuses with leaves; gold wax seal with a heart |
 | `s12-collage-2` | কোলাজ | B | hand with red alta and bangles holding flowers; brass diya with a flame; terracotta Bankura horse; vintage film camera; old pocket watch; ornate brass key; fountain pen with an ink bottle; envelope with a red wax seal; stack of old books with jasmine on top |
+
+### STYLE C (ornate folk-art, like the first 8 stickers)
+
+Style references: attach `public/stickers/shankh.webp`, `radio.webp`, `durga_eyes.webp` and `prodip.webp` (the first stickers Antigravity made). Use them for the look only; never copy them. Style C sheets have **6 stickers**, not 9, so each one keeps that much detail.
+
+> A sheet of ornate Bengali Durga Puja stickers in a rich folk-art style inspired by Bengal patachitra and Kalighat painting: highly detailed hand-painted illustration with intricate decorative patterns painted on every surface (alpona dots, paisley, lotus petals, tiny floral borders, small trident and third-eye motifs), vivid vermilion red, deep maroon, turquoise, mustard yellow and antique gold with fine gold linework, cream highlights, soft painterly shading and a gentle glossy shine. Small accent elements (tiny flowers, leaves, curls of smoke, a little alpona base) may sit close around the main object but stay inside the same sticker outline. Every sticker has one thick, clean pure-white die-cut border following its whole silhouette, with a very thin soft grey line around that border. Premium glossy vinyl sticker quality, front-facing, each sticker large and centred in its own space.
+
+### SHEET RULES C (end of every Style C prompt)
+
+> Exactly 6 separate stickers in a 3 x 2 grid (3 across, 2 down), each one complete and fully inside the image, with wide empty space between them and around the edges (at least one tenth of the image width), no sticker touching or overlapping another. Background: perfectly flat solid pure green #00FF00 everywhere around and between the stickers, no gradient, no texture, no shadow on the background. Do not use bright green inside the stickers; leaves and other green parts are deep olive or dark green. No watermark, logo or signature. No text anywhere unless a sticker below asks for it.
+
+### Sheets 13-18 (Style C, 36 stickers)
+
+| Sheet id | Group (Bangla) | The 6 subjects, in reading order |
+| --- | --- | --- |
+| `s13-thakurer-shaj` | ঠাকুরের সাজ | white shola-pith crown (mukut) of Maa Durga with gold and red details; trishul decorated with a red and gold ribbon and a small bell; golden chakra with ornate spokes; curved khadga sword with a jewelled hilt; garland of red hibiscus (joba) in a loop; pair of small alta-red footprints with a lotus between them, alpona style |
+| `s14-pandal` | প্যান্ডেল | illuminated pandal facade with tiny glowing bulbs; hanging Bengali paper lantern with tassels; swag of glowing fairy-light bulbs; dhaki in a white dhoti playing a dhak with a feather plume (gentle folk-art figure); woman in a red-bordered white saree dancing with a smoking dhunuchi (gentle folk-art figure); crystal chandelier (jhar) with candles |
+| `s15-mela` | পুজোর মেলা | wooden nagordola ferris wheel with little cabins; bunch of colourful balloons; pink cotton candy on a stick; paper pinwheel on a stick; toy cap gun with a red roll of caps; Krishnanagar clay doll of a Bengali woman in a red-bordered saree |
+| `s16-bonedi-bari` | বনেদি বাড়ি | thakur dalan: three carved arches on pillars of an old Bengali mansion; antique pendulum wall clock; carved wooden easy chair; old Kolkata window with coloured stained glass and dark wooden shutters; silver paan-dan box with filigree; old brass hurricane lantern with a flame |
+| `s17-nakshha` | নকশা | round alpona mandala in red and white; paisley (kalka) motif in red and gold; pair of ornate fish facing each other; sun face in patachitra style; ornate L-shaped corner ornament for a photo corner; long horizontal ornate border strip with a lotus in the centre |
+| `s18-lekha` | লেখা | red Bengali calligraphy, spelled exactly letter for letter: "জয় মা দুর্গা" on a red and gold ribbon banner; "দুগ্গা দুগ্গা" on a round ornate badge; "মা আসছেন" on a cream paper scroll; "আসছে বছর আবার হবে" on torn cream paper with an alpona corner; "ঢাকের তালে" with two small crossed dhak sticks; "শুভ দুর্গাপুজো" inside an ornate gold frame (regenerate if any letter is wrong) |
+
+The sheets above that are not made yet (s04 to s12) can use Style C too: put the Style C text and SHEET RULES C in place of Style A, and pick 6 of their 9 subjects.
 
 ---
 
