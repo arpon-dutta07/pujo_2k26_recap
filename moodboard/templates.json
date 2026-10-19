@@ -20,7 +20,7 @@
   "vintage-memory": {"name": "ভিন্টেজ পুজো", "photos": 4},
   "pujor-khobor": {"name": "পুজোর খবর", "photos": 4},
   "sharodiya-kolkata": {"name": "কলকাতার পুজো", "photos": 4},
-  "pujo-collage": {"name": "পুজোর কোলাজ", "photos": 5},
+  "pujo-collage": {"name": "পুজোর কোলাজ", "photos": 5, "tune": {"inset": 16}},
   "kumartuli": {"name": "কুমোরটুলি", "photos": 1},
   "mahalaya": {"name": "ভোরের আলো", "photos": 2},
   "kashban": {"name": "কাশবন", "photos": 3},

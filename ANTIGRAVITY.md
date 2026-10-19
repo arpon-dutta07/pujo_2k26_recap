@@ -9,7 +9,8 @@
 > **Update (Claude, after Antigravity's pass):** the template pipeline in Task A below is now built and in use. Do not use `make-templates.mjs` or hand-written `.slots.json` files; they were wrong and are deleted.
 >
 > - Originals: `moodboard/originals/<id>__story.webp`. Names and photo counts: `moodboard/templates.json`.
-> - Run `npm run templates` (`scripts/build-templates.mjs`). It finds windows by flatness, cuts their exact shape (tilt and words inside included), and writes `public/templates/<id>__story.webp` + `.thumb.webp` and `src/editor/templates.generated.json`.
+> - Run `npm run templates` (`scripts/build-templates.mjs`). It finds windows by flatness, fits each one a clean shape (a straight-edged rectangle, maybe with round corners, an arch or an oval) with its sides snapped to the visible window edge, and cuts exactly that shape with a smooth edge. Tape, pegs, flowers and other frames lying across a window stay on top. It writes `public/templates/<id>__story.webp` + `.thumb.webp` and `src/editor/templates.generated.json`.
+> - The owner wants **perfectly clean, geometric cutouts**, never a ragged brush-like edge. So windows must be plain flat paper in a rectangle or arch shape. The console prints each window's shape and fit (e.g. `rect 98.5%`); below about 93% look closely at the cut.
 > - Check `moodboard/debug/<id>__story.png`, then add the id to `VERIFIED` in `src/editor/templates.ts`.
 > - 8 moodboards are live. Stickers are 8 trimmed WebP files in `public/stickers/`, with drag and drop from the panel.
 > - The site link is no longer printed on pages.
