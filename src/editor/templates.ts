@@ -51,6 +51,7 @@ const VERIFIED = new Set([
   "pandal-hopping-grid__story",
   "mosaic__story",
   "film-roll__story",
+  "photo-booth__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));
