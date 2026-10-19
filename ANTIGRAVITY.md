@@ -1,5 +1,11 @@
 # Handoff: পুজোর ঝুলি, template studio (Part 2)
 
+> **Read first (Claude, 2026-10-19): the site is now only a moodboard maker.**
+>
+> - The photo check (`src/lib/analyze.ts`, the worker, MediaPipe and `public/mediapipe/`), the results screen, the recap (`src/recap/`) and `Processing.tsx` / `Results.tsx` / `Sieve.tsx` / `Hisheb.tsx` / `Ring.tsx` were **removed on purpose**. Do not restore them, even if an old note below mentions them.
+> - Your job is only moodboards and stickers: `moodboard/`, `public/templates/`, `public/stickers/`, `src/editor/templates.*`, `src/editor/stickers.*` (and the build scripts for those).
+> - **Commit only your own files**: `git add <those paths>`, never `git add -A`, `git commit -a`, `git checkout .`, `git restore .` or `git stash`. Another agent works in this repo at the same time; those commands delete or commit its work.
+
 > **Update (Claude, after Antigravity's pass):** the template pipeline in Task A below is now built and in use. Do not use `make-templates.mjs` or hand-written `.slots.json` files; they were wrong and are deleted.
 >
 > - Originals: `moodboard/originals/<id>__story.webp`. Names and photo counts: `moodboard/templates.json`.
