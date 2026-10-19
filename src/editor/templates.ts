@@ -47,6 +47,7 @@ const VERIFIED = new Set([
   "khilan__story",
   "tin-khilan__story",
   "ghontar-khilan__story",
+  "pujo-dump__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));
