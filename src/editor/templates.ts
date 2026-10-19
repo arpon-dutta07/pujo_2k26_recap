@@ -42,6 +42,7 @@ const VERIFIED = new Set([
   "retro-cinema__story",
   "pujor-khobor__story",
   "padma__story",
+  "shiuli-char__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));
