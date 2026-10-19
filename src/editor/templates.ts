@@ -48,6 +48,7 @@ const VERIFIED = new Set([
   "tin-khilan__story",
   "ghontar-khilan__story",
   "pujo-dump__story",
+  "pandal-hopping-grid__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));
