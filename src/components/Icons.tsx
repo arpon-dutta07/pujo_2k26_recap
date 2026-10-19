@@ -121,6 +121,18 @@ export const BackIcon = (p: P) => (
   </svg>
 );
 
+export const NextIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="m9 5 7 7-7 7" />
+  </svg>
+);
+
+export const DownIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="m7 10 5 5 5-5" />
+  </svg>
+);
+
 export const UndoIcon = (p: P) => (
   <svg {...base} {...p}>
     <path d="M9 14 4 9l5-5" />

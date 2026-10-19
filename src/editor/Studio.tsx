@@ -1,18 +1,23 @@
-// The template studio: a full-screen editor in the spirit of SCRL. Pages sit
-// in a sideways strip like an Instagram carousel; photos, stickers and words
-// are moved with a finger (or mouse), and everything is pure DOM transforms.
+// The template studio: a full-screen editor in the spirit of SCRL, dressed
+// like the rest of the site (paper table, sindoor bar with a saree border).
+// Pages sit in a sideways strip like an Instagram carousel; photos, stickers
+// and words are moved with a finger (or mouse), all as pure DOM transforms.
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch } from "react";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   BackIcon,
+  CheckIcon,
+  CloseIcon,
   CopyIcon,
+  DownIcon,
   EditIcon,
   FitIcon,
   FlipIcon,
   FrontIcon,
   LayoutIcon,
+  NextIcon,
   PhotosIcon,
   PlusIcon,
   RedoIcon,
@@ -57,11 +62,18 @@ type Gesture = {
 };
 
 const TOOLS: Array<[Tool, string, typeof LayoutIcon]> = [
-  ["templates", "Templates", LayoutIcon],
   ["photos", "Photos", PhotosIcon],
+  ["templates", "Moodboard", LayoutIcon],
   ["stickers", "Stickers", StickerIcon],
   ["text", "Text", TextIcon],
 ];
+
+const TITLES: Record<Tool, string> = {
+  photos: "তোমার ছবি",
+  templates: "অন্য মুডবোর্ড",
+  stickers: "স্টিকার",
+  text: "লেখা",
+};
 
 function useWide() {
   const query = "(min-width: 1024px)";
@@ -103,8 +115,9 @@ export function Studio({
   onClose: () => void;
 }) {
   const wide = useWide();
-  const [tool, setTool] = useState<Tool | null>(null);
-  const [rightTool, setRightTool] = useState<Exclude<Tool, "photos">>("templates");
+  // Desktop opens with the photos panel beside the page; a phone starts with the page alone.
+  const [tool, setTool] = useState<Tool | null>(wide ? "photos" : null);
+  const [pageMenu, setPageMenu] = useState(false);
   const [sel, setSel] = useState<PageSel | null>(null);
   const [live, setLive] = useState<PageLive | null>(null);
   const [current, setCurrent] = useState(Math.min(startPage, project.pages.length - 1));
@@ -397,13 +410,7 @@ export function Studio({
 
   // ---------- actions ----------
 
-  const openTool = (t: Tool) => {
-    if (wide) {
-      if (t !== "photos") setRightTool(t);
-      return;
-    }
-    setTool(t);
-  };
+  const openTool = (t: Tool) => setTool(t);
 
   const selPage = sel ? pages.find((p) => p.id === sel.pageId) : undefined;
   const selItem =
@@ -628,6 +635,22 @@ export function Studio({
     });
   };
 
+  const goTo = (i: number) => {
+    if (i < 0 || i >= pages.length) return;
+    setCurrent(i);
+    scrollToPage(i);
+  };
+
+  // The page menu closes on any tap outside it.
+  useEffect(() => {
+    if (!pageMenu) return;
+    const close = (e: PointerEvent) => {
+      if (!(e.target as HTMLElement).closest(".st-pmenu")) setPageMenu(false);
+    };
+    window.addEventListener("pointerdown", close);
+    return () => window.removeEventListener("pointerdown", close);
+  }, [pageMenu]);
+
   // ---------- keyboard ----------
 
   useEffect(() => {
@@ -643,8 +666,9 @@ export function Studio({
         e.preventDefault();
         removeItem(sel.pageId, sel.id);
       } else if (e.key === "Escape" && !exporting) {
-        if (tool) setTool(null);
+        if (pageMenu) setPageMenu(false);
         else if (sel) setSel(null);
+        else if (tool) setTool(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -654,24 +678,44 @@ export function Studio({
   // ---------- pieces ----------
 
   const slideCount = pages.reduce((n, p) => n + (templateById(p.template).span ?? 1), 0);
+  const formats = availableFormats();
   const hint =
     sel?.kind === "slot"
-      ? "যে ছবিতে ট্যাপ করবে, সেটা ওই ঘরে বসবে।"
-      : "ট্যাপ করলে পাতার প্রথম খালি ঘরে বসবে। পাতার কোনো ছবি আগে সিলেক্ট করলে সেটা বদলাবে।";
+      ? "যে ছবিতে ট্যাপ করবে, সেটা বাছা ঘরে বসবে।"
+      : wide
+        ? "ট্যাপ করলে পাতার খালি ঘরে বসবে, বা টেনে এনে ফ্রেমে ছাড়ো।"
+        : "ট্যাপ করলে পাতার খালি ঘরে বসবে।";
 
-  const photoPanel = (
-    <PhotoPanel photos={photos} used={used} adding={adding} hint={hint} onPick={placePhoto} onFiles={addFiles} onAutofill={doAutofill} />
-  );
+  // What this page would look like in another moodboard: its own photos
+  // first, then the ones not used anywhere yet (what pickTemplate does).
+  const previewPhotos = useMemo(() => {
+    if (!page) return [];
+    const onPage = layoutOf(page.template, format)
+      .layout.slots.map((s) => page.fills[s.id]?.photoId)
+      .filter((id): id is string => Boolean(id));
+    const rest = photos.filter((p) => !used.has(p.id)).map((p) => p.id);
+    return [...onPage, ...rest].map((id) => photo(id)?.thumbUrl).filter((u): u is string => Boolean(u));
+  }, [page, format, photos, used, photo]);
+
   const panelFor = (t: Tool) =>
     t === "templates" ? (
-      <TemplatePanel format={format} current={page?.template} onPick={pickTemplate} />
+      <TemplatePanel format={format} current={page?.template} photos={previewPhotos} onPick={pickTemplate} />
     ) : t === "photos" ? (
-      photoPanel
+      <PhotoPanel photos={photos} used={used} adding={adding} hint={hint} onPick={placePhoto} onFiles={addFiles} onAutofill={doAutofill} />
     ) : t === "stickers" ? (
       <StickerPanel onSticker={addSticker} onText={addText} onDropAt={dropSticker} />
     ) : (
       <TextPanel item={selText} onAdd={addText} onChange={(patch) => patchSelected(patch)} />
     );
+
+  const panelHead = (t: Tool) => (
+    <header className="st-panel-head">
+      <h2>{t === "text" && selText ? "লেখা বদলাও" : TITLES[t]}</h2>
+      <button type="button" className="st-x" onClick={() => setTool(null)} aria-label="বন্ধ করো">
+        <CloseIcon />
+      </button>
+    </header>
+  );
 
   const selSlotFill = sel?.kind === "slot" && selPage ? selPage.fills[sel.id] : null;
 
@@ -687,19 +731,18 @@ export function Studio({
               <button type="button" onClick={() => setFill(selPage.id, sel.id, fillFor(photo(selSlotFill.photoId)!))}>
                 <FitIcon /> Fit
               </button>
-              <button type="button" onClick={() => setFill(selPage.id, sel.id, null)}>
+              <button type="button" className="ctx-del" onClick={() => setFill(selPage.id, sel.id, null)}>
                 <TrashIcon /> Remove
               </button>
             </>
           )}
-          {selSlotFill && <span className="ctx-tip">Drag করো, দু আঙুলে zoom</span>}
         </>
       )}
       {sel.kind !== "slot" && selItem && (
         <>
           {sel.kind === "text" && (
             <button type="button" onClick={() => openTool("text")}>
-              <EditIcon /> Edit text
+              <EditIcon /> Edit
             </button>
           )}
           {sel.kind === "sticker" && (
@@ -713,13 +756,81 @@ export function Studio({
           <button type="button" onClick={bringFront}>
             <FrontIcon /> Front
           </button>
-          <button type="button" onClick={() => removeItem(selPage.id, sel.id)}>
+          <button type="button" className="ctx-del" onClick={() => removeItem(selPage.id, sel.id)}>
             <TrashIcon /> Delete
           </button>
         </>
       )}
+      <button type="button" className="ctx-done" onClick={() => setSel(null)} aria-label="Done">
+        <CheckIcon /> <span>Done</span>
+      </button>
     </div>
   );
+
+  const menuItem = (label: string, Icon: typeof PlusIcon, run: () => void, disabled = false, danger = false) => (
+    <button
+      type="button"
+      role="menuitem"
+      className={danger ? "st-menu-danger" : undefined}
+      disabled={disabled}
+      onClick={() => {
+        setPageMenu(false);
+        run();
+      }}
+    >
+      <Icon /> {label}
+    </button>
+  );
+
+  const pageBar = (
+    <div className="st-pages">
+      <button type="button" className="st-nav" onClick={() => goTo(current - 1)} disabled={current === 0} aria-label="আগের পাতা">
+        <BackIcon />
+      </button>
+      <div className="st-pmenu">
+        <button
+          type="button"
+          className="st-count"
+          aria-haspopup="menu"
+          aria-expanded={pageMenu}
+          onClick={() => setPageMenu((m) => !m)}
+          title={slideCount !== pages.length ? `Instagram-এ ${bnNum(slideCount)}টা ছবি` : undefined}
+        >
+          পাতা {bnNum(Math.min(current + 1, pages.length))}/{bnNum(pages.length)}
+          <DownIcon />
+        </button>
+        <AnimatePresence>
+          {pageMenu && (
+            <motion.div
+              className="st-menu"
+              role="menu"
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.16 }}
+            >
+              {menuItem("নতুন পাতা", PlusIcon, addPage)}
+              {menuItem("এই পাতাটা কপি করো", CopyIcon, copyPage)}
+              {menuItem("বাঁদিকে সরাও", ArrowLeftIcon, () => movePage(-1), current === 0)}
+              {menuItem("ডানদিকে সরাও", ArrowRightIcon, () => movePage(1), current >= pages.length - 1)}
+              {menuItem("পাতাটা মুছে দাও", TrashIcon, deletePage, pages.length < 2, true)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      <button
+        type="button"
+        className="st-nav"
+        onClick={() => goTo(current + 1)}
+        disabled={current >= pages.length - 1}
+        aria-label="পরের পাতা"
+      >
+        <NextIcon />
+      </button>
+    </div>
+  );
+
+  const showCtx = Boolean(sel && selPage);
 
   return (
     <motion.div
@@ -729,30 +840,30 @@ export function Studio({
       exit={{ opacity: 0, y: 24 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       role="dialog"
-      aria-label="টেমপ্লেট স্টুডিও"
+      aria-label="মুডবোর্ড স্টুডিও"
     >
       <header className="st-head">
-        <button type="button" className="icon-btn" onClick={onClose} aria-label="ফিরে যাও">
+        <button type="button" className="st-round" onClick={onClose} aria-label="ফিরে যাও">
           <BackIcon />
         </button>
-        <div className="seg" role="group" aria-label="মাপ">
-          {(Object.keys(FORMATS) as Format[]).map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={format === f}
-              disabled={!availableFormats().includes(f)}
-              onClick={() => setFormat(f)}
-            >
-              {FORMATS[f].label} <small>{FORMATS[f].short}</small>
-            </button>
-          ))}
+        <div className="st-title">
+          <b>পুজোর ঝুলি</b>
+          <span>{bnNum(pages.length)}টা পাতা</span>
         </div>
+        {formats.length > 1 && (
+          <div className="seg" role="group" aria-label="মাপ">
+            {(Object.keys(FORMATS) as Format[]).map((f) => (
+              <button key={f} type="button" aria-pressed={format === f} disabled={!formats.includes(f)} onClick={() => setFormat(f)}>
+                {FORMATS[f].label} <small>{FORMATS[f].short}</small>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="st-head-right">
-          <button type="button" className="icon-btn" disabled={!canUndo} onClick={() => dispatch({ type: "undo" })} aria-label="আগের অবস্থায় ফেরো">
+          <button type="button" className="st-round" disabled={!canUndo} onClick={() => dispatch({ type: "undo" })} aria-label="আগের অবস্থায় ফেরো">
             <UndoIcon />
           </button>
-          <button type="button" className="icon-btn" disabled={!canRedo} onClick={() => dispatch({ type: "redo" })} aria-label="আবার করো">
+          <button type="button" className="st-round" disabled={!canRedo} onClick={() => dispatch({ type: "redo" })} aria-label="আবার করো">
             <RedoIcon />
           </button>
           <button type="button" className="btn btn-primary btn-small st-share" onClick={() => setExporting(true)}>
@@ -763,10 +874,32 @@ export function Studio({
 
       <div className="st-body">
         {wide && (
-          <aside className="st-side st-left">
-            <h3 className="side-title">Photos</h3>
-            {photoPanel}
-          </aside>
+          <>
+            <nav className="st-rail" aria-label="সরঞ্জাম">
+              {TOOLS.map(([t, label, Icon]) => (
+                <button key={t} type="button" aria-pressed={tool === t} onClick={() => setTool(tool === t ? null : t)}>
+                  <span className="st-ic">
+                    <Icon />
+                  </span>
+                  {label}
+                </button>
+              ))}
+            </nav>
+            {tool && (
+              <aside className="st-side" aria-label={TITLES[tool]}>
+                {panelHead(tool)}
+                <motion.div
+                  key={tool}
+                  className="st-side-body"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {panelFor(tool)}
+                </motion.div>
+              </aside>
+            )}
+          </>
         )}
 
         <main className="st-main">
@@ -806,54 +939,30 @@ export function Studio({
                 );
               })}
               <button type="button" className="st-addpage" onClick={addPage}>
-                <PlusIcon />
-                <span>New page</span>
+                <span className="st-addpage-plus">
+                  <PlusIcon />
+                </span>
+                <b>নতুন পাতা</b>
+                <small>আরেকটা মুডবোর্ড</small>
               </button>
             </div>
           </div>
 
-          <div className="st-pagebar">
-            <span className="st-count">
-              পাতা {bnNum(Math.min(current + 1, pages.length))}/{bnNum(pages.length)}
-              {slideCount !== pages.length && <small> · Instagram-এ {bnNum(slideCount)}টা ছবি</small>}
-            </span>
-            <div className="st-page-tools">
-              <button type="button" className="icon-btn" onClick={() => movePage(-1)} disabled={current === 0} aria-label="পাতা বাঁদিকে সরাও">
-                <ArrowLeftIcon />
-              </button>
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={() => movePage(1)}
-                disabled={current >= pages.length - 1}
-                aria-label="পাতা ডানদিকে সরাও"
+          <div className="st-bar">
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={showCtx ? "ctx" : "pages"}
+                className="st-bar-in"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
               >
-                <ArrowRightIcon />
-              </button>
-              <button type="button" className="icon-btn" onClick={copyPage} aria-label="পাতা কপি করো">
-                <CopyIcon />
-              </button>
-              <button type="button" className="icon-btn" onClick={deletePage} disabled={pages.length < 2} aria-label="পাতা মুছে দাও">
-                <TrashIcon />
-              </button>
-            </div>
+                {showCtx ? contextBar : pageBar}
+              </motion.div>
+            </AnimatePresence>
           </div>
-
-          {contextBar}
         </main>
-
-        {wide && (
-          <aside className="st-side st-right">
-            <div className="side-tabs" role="tablist">
-              {TOOLS.filter(([t]) => t !== "photos").map(([t, label, Icon]) => (
-                <button key={t} role="tab" type="button" aria-selected={rightTool === t} onClick={() => setRightTool(t as Exclude<Tool, "photos">)}>
-                  <Icon /> {label}
-                </button>
-              ))}
-            </div>
-            {panelFor(rightTool)}
-          </aside>
-        )}
       </div>
 
       {!wide && (
@@ -863,19 +972,23 @@ export function Studio({
               <motion.section
                 key={tool}
                 className="st-panel"
-                initial={{ y: 24, opacity: 0 }}
+                aria-label={TITLES[tool]}
+                initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 24, opacity: 0 }}
+                exit={{ y: 30, opacity: 0 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               >
-                {panelFor(tool)}
+                {panelHead(tool)}
+                <div className="st-panel-body">{panelFor(tool)}</div>
               </motion.section>
             )}
           </AnimatePresence>
           <nav className="st-dock" aria-label="সরঞ্জাম">
             {TOOLS.map(([t, label, Icon]) => (
               <button key={t} type="button" aria-pressed={tool === t} onClick={() => setTool(tool === t ? null : t)}>
-                <Icon />
+                <span className="st-ic">
+                  <Icon />
+                </span>
                 <span>{label}</span>
               </button>
             ))}

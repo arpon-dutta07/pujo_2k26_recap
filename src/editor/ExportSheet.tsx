@@ -89,8 +89,8 @@ export function ExportSheet({
             <p>
               পাতা {bnNum(Math.min(progress.done + 1, progress.total))}/{bnNum(progress.total)}
             </p>
-            <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-              <div style={{ width: `${pct}%`, transition: "width 0.25s ease-out" }} />
+            <div className="export-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+              <div style={{ width: `${pct}%` }} />
             </div>
           </>
         )}

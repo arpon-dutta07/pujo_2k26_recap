@@ -1,6 +1,7 @@
 // The studio's tool panels: templates, photos, stickers and words.
 import { memo, useEffect, useRef, useState } from "react";
 import { CheckIcon, PhotosIcon, PlusIcon, WandIcon } from "../components/Icons";
+import { TemplatePreview } from "../screens/home/TemplatePreview";
 import { bnNum } from "../lib/bn";
 import { dayLabel } from "../lib/days";
 import type { Photo } from "../lib/types";
@@ -59,17 +60,59 @@ export const TemplateTile = memo(function TemplateTile({
   );
 });
 
-export function TemplatePanel({ format, current, onPick }: { format: Format; current?: string; onPick: (id: string) => void }) {
+// A moodboard with this page's photos already in it, as on the home page.
+const BoardTile = memo(function BoardTile({
+  id,
+  photos,
+  active,
+  onPick,
+}: {
+  id: string;
+  photos: string[];
+  active?: boolean;
+  onPick: (id: string) => void;
+}) {
+  const def = templateById(id);
+  return (
+    <button className="tp-tile" aria-pressed={active} onClick={() => onPick(id)} type="button">
+      <span className="tp-img">
+        <TemplatePreview id={id} photos={photos} repeat={false} />
+        {active && (
+          <span className="tp-now">
+            <CheckIcon /> এখন এটা
+          </span>
+        )}
+      </span>
+      <span className="tp-name">{def.name}</span>
+    </button>
+  );
+});
+
+export function TemplatePanel({
+  format,
+  current,
+  photos,
+  onPick,
+}: {
+  format: Format;
+  current?: string;
+  photos: string[];
+  onPick: (id: string) => void;
+}) {
   const live = templatesFor(format);
   const singles = live.filter((t) => (t.span ?? 1) === 1);
   const panos = live.filter((t) => (t.span ?? 1) > 1);
   return (
     <div className="panel-body">
-      <p className="panel-hint">যে পাতাটা সামনে আছে, তাতে বসবে। ছবিগুলো নতুন ফ্রেমেও থেকে যাবে।</p>
+      <p className="panel-hint">যেটায় ট্যাপ করবে, সামনের পাতাটা সেই মুডবোর্ডে চলে যাবে। ছবিগুলো থেকে যাবে।</p>
       <div className="tp-grid">
-        {singles.map((t) => (
-          <TemplateTile key={t.id} id={t.id} format={format} active={current === t.id} onPick={onPick} />
-        ))}
+        {singles.map((t) =>
+          format === "story" ? (
+            <BoardTile key={t.id} id={t.id} photos={photos} active={current === t.id} onPick={onPick} />
+          ) : (
+            <TemplateTile key={t.id} id={t.id} format={format} active={current === t.id} onPick={onPick} />
+          ),
+        )}
       </div>
       {panos.length > 0 && (
         <>
@@ -159,10 +202,11 @@ export function PhotoPanel({
           }}
         />
       </div>
-      <p className="panel-hint">{hint}</p>
-
-      <h4 className="panel-title">তোমার ছবি</h4>
-      {photos.length === 0 && adding === 0 && <p className="panel-hint">এখনও কোনো ছবি নেই। "আরও ছবি" টিপে ফোন থেকে দাও।</p>}
+      {photos.length === 0 && adding === 0 ? (
+        <p className="panel-hint">এখনও কোনো ছবি নেই। "আরও ছবি" টিপে ফোন থেকে দাও।</p>
+      ) : (
+        <p className="panel-hint">{hint}</p>
+      )}
       <div className="ph-grid">
         {photos.map((p) => (
           <PhotoTile key={p.id} photo={p} used={used.has(p.id)} onPick={onPick} />
@@ -299,9 +343,7 @@ export function StickerPanel({
   const handlers = useStickerDrag(onSticker, onDropAt);
   return (
     <div className="panel-body">
-      <p className="panel-hint">
-        ট্যাপ করলে পাতার মাঝে বসবে, বা drag করে যেখানে খুশি রাখো (ফোনে একটু চেপে ধরে টানো)। কোণের গোল বোতাম দিয়ে ঘোরাও, বড়-ছোট করো।
-      </p>
+      <p className="panel-hint">ট্যাপ করলে পাতার মাঝে বসবে। টেনে এনে যেখানে খুশি রাখা যায় (ফোনে একটু চেপে ধরে টানো)।</p>
       {stickerGroups().map(([group, list], gi) => (
         <div key={group} className="st-group">
           {(gi > 0 || stickerGroups().length > 1) && <h4 className="panel-title">{group}</h4>}
@@ -314,7 +356,7 @@ export function StickerPanel({
           </div>
         </div>
       ))}
-      <h4 className="panel-title">Text stickers</h4>
+      <h4 className="panel-title">লেখা</h4>
       <div className="tx-presets">
         {TEXT_PRESETS.map((t) => (
           <button key={t.text} type="button" className="tx-preset" onClick={() => onText(t)}>
