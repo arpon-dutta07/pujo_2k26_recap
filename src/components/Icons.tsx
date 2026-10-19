@@ -279,3 +279,13 @@ export const PlayIcon = (p: P) => (
     <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
   </svg>
 );
+
+// A potli, the drawstring cloth bag the site is named after.
+export const BagIcon = (p: P) => (
+  <svg {...base} {...p}>
+    <path d="M8.5 8c-2.6 2-4.5 5-4.5 8 0 3.1 2.6 5 8 5s8-1.9 8-5c0-3-1.9-6-4.5-8" />
+    <path d="M8.5 8h7" />
+    <path d="M9.6 8 8 4.6c1.3.6 2.7.6 4 0 1.3.6 2.7.6 4 0L14.4 8" />
+    <path d="M9 13c1.8 1.1 4.2 1.1 6 0" />
+  </svg>
+);

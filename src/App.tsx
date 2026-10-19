@@ -1,176 +1,97 @@
+// পুজোর ঝুলি: a Pujo moodboard maker. The visitor adds photos, sees them in
+// every moodboard, opens one in the studio, and each moodboard they open
+// becomes a page in their ঝুলি (bag), shared together at the end.
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DiyaIcon } from "./components/Icons";
+import { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { BagIcon, DiyaIcon } from "./components/Icons";
 import { LIMITS, SITE } from "./config";
-import { analyzePhotos, warmAnalyzer } from "./lib/analyze";
-import { dayLabel } from "./lib/days";
-import { selectBest, withPinned } from "./lib/select";
-import { computeStats } from "./lib/stats";
-import type { Photo, Progress } from "./lib/types";
+import { historyReducer, makePage, usedPhotoIds, type History } from "./editor/project";
+import { Studio } from "./editor/Studio";
+import "./editor/studio.css";
+import { bnNum } from "./lib/bn";
+import { importPhoto, isImage } from "./lib/photos";
+import type { Photo } from "./lib/types";
 import { Landing } from "./screens/Landing";
-import { Processing, type LiveFeed, type LiveThumb } from "./screens/Processing";
-import { Results } from "./screens/Results";
 import { Scene } from "./three/Scene";
-import { pushFeed, setScene } from "./three/store";
-
-type Stage = "landing" | "processing" | "results" | "error";
+import { setScene } from "./three/store";
 
 const StaticScene = memo(Scene);
+const EMPTY: History = { past: [], present: { format: "story", pages: [] }, future: [] };
 
-const EMPTY_FEED: LiveFeed = { recent: [], days: {} };
-// Thumbnails kept for the live wall of the photo check (it shows ten).
-const LIVE_WALL = 10;
-
-// Opacity and a small lift only: a full-page blur filter is too heavy while the
-// analysis is keeping the main thread busy.
-const screen = {
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
-};
+// Small pictures of the visitor's photos for the orbiting 3D polaroids.
+async function picturesOf(photos: Photo[]) {
+  const out = await Promise.all(
+    photos.slice(-24).map(
+      (p) =>
+        new Promise<HTMLImageElement | null>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = p.thumbUrl;
+        }),
+    ),
+  );
+  return out.filter((x): x is HTMLImageElement => !!x);
+}
 
 export function App() {
-  const [stage, setStage] = useState<Stage>("landing");
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [progress, setProgress] = useState<Progress | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [pickCount, setPickCount] = useState(LIMITS.defaultPick);
+  const [adding, setAdding] = useState(0);
+  const [hist, dispatch] = useReducer(historyReducer, EMPTY);
+  const [studio, setStudio] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const abort = useRef<AbortController | null>(null);
-  // What the photo check has seen so far, for the live wall, and the photos
-  // the visitor tapped to keep.
-  const [live, setLive] = useState<LiveFeed>(EMPTY_FEED);
-  const [pinned, setPinned] = useState<ReadonlySet<string>>(() => new Set());
-  const pinnedRef = useRef(pinned);
-  useEffect(() => {
-    pinnedRef.current = pinned;
-  }, [pinned]);
+  const seq = useRef(0);
+  const project = hist.present;
+  const byId = useMemo(() => new Map(photos.map((p) => [p.id, p])), [photos]);
+  const photo = useCallback((id: string) => byId.get(id), [byId]);
 
-  const togglePin = useCallback((id: string) => {
-    setPinned((s) => {
-      const next = new Set(s);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  const addPhotos = useCallback(async (input: File[]) => {
+    const files = input.filter(isImage).slice(0, LIMITS.maxPhotos);
+    if (!files.length) return;
+    setAdding(files.length);
+    for (const f of files) {
+      const n = ++seq.current;
+      const p = await importPhoto(f, `p${n}-${Date.now().toString(36)}`, n).catch(() => null);
+      if (p) setPhotos((prev) => [...prev, p]);
+      setAdding((a) => Math.max(0, a - 1));
+    }
+    setAdding(0);
+  }, []);
+
+  const removePhoto = useCallback((id: string) => {
+    setPhotos((prev) => {
+      const gone = prev.find((p) => p.id === id);
+      if (gone) URL.revokeObjectURL(gone.thumbUrl);
+      return prev.filter((p) => p.id !== id);
     });
   }, []);
 
-  const stats = useMemo(() => (photos.length ? computeStats(photos) : null), [photos]);
-
-  const reset = useCallback(() => {
-    abort.current?.abort();
-    photos.forEach((p) => p.thumbUrl && URL.revokeObjectURL(p.thumbUrl));
-    setPhotos([]);
-    setSelected([]);
-    setProgress(null);
-    setError(null);
-    setLive(EMPTY_FEED);
-    setPinned(new Set());
-    setScene({ mode: "hero", ring: [] });
-    setStage("landing");
-    window.scrollTo({ top: 0 });
+  // The 3D polaroids in the hero show the visitor's photos once there are some.
+  useEffect(() => {
+    let alive = true;
+    void picturesOf(photos).then((pictures) => alive && setScene({ pictures }));
+    return () => {
+      alive = false;
+    };
   }, [photos]);
 
-  const handleFiles = useCallback(async (input: File[]) => {
-    const images = input.filter((f) => f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
-    if (!images.length) return;
-    const files = images.slice(0, LIMITS.maxPhotos);
-    window.scrollTo({ top: 0 });
-    setStage("processing");
-    setScene({ mode: "processing", ring: [] });
-    const ctrl = new AbortController();
-    abort.current = ctrl;
-    setLive(EMPTY_FEED);
-    setPinned(new Set());
-    // Results arrive faster than the screen redraws: collect them and update
-    // the panel once per frame.
-    const fresh: LiveThumb[] = [];
-    const dayCount: Record<string, number> = {};
-    let latest: Progress | null = null;
-    let seq = 0;
-    let frame = 0;
-    const flush = () => {
-      frame = 0;
-      if (latest) setProgress(latest);
-      const add = fresh.splice(0).reverse();
-      if (add.length) setLive((l) => ({ recent: [...add, ...l.recent].slice(0, LIVE_WALL), days: { ...dayCount } }));
-    };
-    const later = () => {
-      if (!frame) frame = requestAnimationFrame(flush);
-    };
-    try {
-      // Let the panel arrive and the placeholder cards fall into the flame first.
-      await new Promise((r) => setTimeout(r, 800));
-      if (ctrl.signal.aborted) return;
-      const result = await analyzePhotos(
-        files,
-        {
-          onProgress: (p) => {
-            latest = p;
-            later();
-          },
-          onPhoto: (photo, card) => {
-            pushFeed({ canvas: card, verdict: photo.status === "ok" ? "ok" : photo.status === "duplicate" ? "duplicate" : "blurry" });
-            fresh.push({ id: photo.id, seq: seq++, url: photo.thumbUrl, status: photo.status, day: photo.day });
-            const k = photo.day ?? "unknown";
-            dayCount[k] = (dayCount[k] ?? 0) + 1;
-            later();
-          },
-        },
-        ctrl.signal,
-      );
-      const readable = result.filter((p) => p.status !== "unreadable");
-      if (!readable.length) {
-        setError(
-          "একটাও ছবি খোলা গেল না। iPhone-এর HEIC ছবি হলে Settings > Camera > Formats-এ গিয়ে 'Most Compatible' করে দেখো, বা ফোন থেকেই সাইটটা খোলো।",
-        );
-        setStage("error");
-        setScene({ mode: "hero" });
-        return;
-      }
-      cancelAnimationFrame(frame);
-      flush();
-      setPhotos(result);
-      setSelected(withPinned(result, selectBest(result, LIMITS.defaultPick), pinnedRef.current, LIMITS.defaultPick));
-      setPickCount(LIMITS.defaultPick);
-      // Let the last cards finish their trip through the flame.
-      await new Promise((r) => setTimeout(r, 1400));
-      if (ctrl.signal.aborted) return;
-      setScene({ mode: "results" });
-      setStage("results");
-      window.scrollTo({ top: 0 });
-    } catch (err) {
-      if ((err as DOMException)?.name === "AbortError") return;
-      console.error(err);
-      setError("কিছু একটা গোলমাল হল। পেজটা রিফ্রেশ করে আবার চেষ্টা করো।");
-      setStage("error");
-      setScene({ mode: "hero" });
-    }
-  }, []);
+  // A moodboard picked in the gallery becomes a new page in the bag, filled
+  // with photos not used on another page yet, and opens in the studio.
+  const start = useCallback(
+    (templateId: string) => {
+      const used = usedPhotoIds(project);
+      const pool = [...photos.filter((p) => !used.has(p.id)), ...photos.filter((p) => used.has(p.id))];
+      const page = makePage(templateId, project.format, pool);
+      dispatch({ type: "set", project: { ...project, pages: [...project.pages, page] } });
+      setStudio(project.pages.length);
+    },
+    [project, photos],
+  );
 
-  // The 3D ring always mirrors the current selection.
+  // Drag and drop anywhere while the studio is closed.
   useEffect(() => {
-    if (stage !== "results") return;
-    const byId = new Map(photos.map((p) => [p.id, p]));
-    setScene({
-      ring: selected.map((id) => byId.get(id)!).filter(Boolean).map((p) => ({ url: p.thumbUrl, label: dayLabel(p.day) })),
-    });
-  }, [selected, photos, stage]);
-
-  // Start downloading the face model (about 7 MB) while people read the landing page,
-  // but only on a fast connection that hasn't asked to save data.
-  useEffect(() => {
-    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    if (conn?.saveData || (conn?.effectiveType && conn.effectiveType !== "4g")) return;
-    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
-    idle(() => warmAnalyzer());
-  }, []);
-
-  // Drag and drop anywhere on the landing page.
-  useEffect(() => {
-    if (stage !== "landing") return;
+    if (studio !== null) return;
     let depth = 0;
     const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
     const enter = (e: DragEvent) => {
@@ -188,7 +109,8 @@ export function App() {
       e.preventDefault();
       depth = 0;
       setDragging(false);
-      void handleFiles(Array.from(e.dataTransfer?.files ?? []));
+      document.getElementById("moodboards")?.scrollIntoView({ behavior: "smooth" });
+      void addPhotos(Array.from(e.dataTransfer?.files ?? []));
     };
     window.addEventListener("dragenter", enter);
     window.addEventListener("dragleave", leave);
@@ -200,74 +122,78 @@ export function App() {
       window.removeEventListener("dragover", over);
       window.removeEventListener("drop", drop);
     };
-  }, [stage, handleFiles]);
+  }, [studio, addPhotos]);
 
   // Dev-only hook so the flow can be driven without a file picker.
   useEffect(() => {
     if (!import.meta.env.DEV) return;
-    (window as unknown as { __pujoTest: (urls: string[]) => Promise<void> }).__pujoTest = async (urls) => {
+    (window as unknown as { __pujoAdd: (urls: string[]) => Promise<void> }).__pujoAdd = async (urls) => {
       const files = await Promise.all(
         urls.map(async (u, i) => {
           const blob = await (await fetch(u)).blob();
           return new File([blob], u.split("/").pop() ?? `t${i}.jpg`, { type: blob.type, lastModified: Date.now() });
         }),
       );
-      await handleFiles(files);
+      await addPhotos(files);
     };
-  }, [handleFiles]);
+  }, [addPhotos]);
 
-  const changeCount = (n: number) => {
-    setPickCount(n);
-    setSelected(withPinned(photos, selectBest(photos, n), pinned, n));
-  };
+  const pages = project.pages.length;
 
   return (
     <>
       <StaticScene />
       <div className="app">
         <header className="topbar">
-          <button className="brand" onClick={stage === "processing" ? undefined : reset} aria-label={`${SITE.name}, শুরুতে ফেরো`}>
+          <button className="brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label={`${SITE.name}, উপরে যাও`}>
             <DiyaIcon />
             {SITE.name}
           </button>
         </header>
-
-        <AnimatePresence mode="wait">
-          {stage === "landing" && (
-            <motion.main key="landing" {...screen}>
-              <Landing onFiles={handleFiles} />
-            </motion.main>
-          )}
-          {stage === "processing" && (
-            <motion.main key="processing" {...screen}>
-              <Processing progress={progress} live={live} pinned={pinned} onTogglePin={togglePin} onCancel={reset} />
-            </motion.main>
-          )}
-          {stage === "results" && stats && (
-            <motion.main key="results" {...screen}>
-              <Results
-                photos={photos}
-                selected={selected}
-                pickCount={pickCount}
-                onPickCount={changeCount}
-                stats={stats}
-                onRestart={reset}
-              />
-            </motion.main>
-          )}
-          {stage === "error" && (
-            <motion.main key="error" {...screen} className="processing">
-              <div className="process-panel">
-                <h2>উফ!</h2>
-                <p className="fun-line">{error}</p>
-                <button className="btn btn-primary" onClick={reset}>
-                  আবার চেষ্টা করো
-                </button>
-              </div>
-            </motion.main>
-          )}
-        </AnimatePresence>
+        <main>
+          <Landing photos={photos} adding={adding} onFiles={addPhotos} onRemovePhoto={removePhoto} onStart={start} />
+        </main>
       </div>
+
+      <AnimatePresence>
+        {pages > 0 && studio === null && (
+          <motion.button
+            className="bag-btn"
+            onClick={() => setStudio(pages - 1)}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileTap={{ scale: 0.94 }}
+            aria-label={`তোমার ঝুলি, ${bnNum(pages)}টা পাতা`}
+          >
+            <BagIcon />
+            <span>ঝুলি</span>
+            <motion.b key={pages} initial={{ scale: 1.9 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 9, stiffness: 300 }}>
+              {bnNum(pages)}
+            </motion.b>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {createPortal(
+        <AnimatePresence>
+          {studio !== null && pages > 0 && (
+            <Studio
+              key="studio"
+              project={project}
+              dispatch={dispatch}
+              canUndo={hist.past.length > 0}
+              canRedo={hist.future.length > 0}
+              photo={photo}
+              photos={photos}
+              onAddPhotos={(list) => setPhotos((x) => [...x, ...list])}
+              startPage={studio}
+              onClose={() => setStudio(null)}
+            />
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
 
       <AnimatePresence>
         {dragging && (

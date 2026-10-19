@@ -2,49 +2,25 @@
 // fields every frame; React subscribes only to the few that change rarely.
 import { useSyncExternalStore } from "react";
 
-export type SceneMode = "hero" | "processing" | "results";
-export type Verdict = "ok" | "blurry" | "duplicate";
-
-// `canvas` is a small picture of the photo: an ImageBitmap from the analysis
-// worker, or a canvas when the page did the work itself.
-export type FeedItem = { canvas: ImageBitmap | HTMLCanvasElement; verdict: Verdict };
-
-export const releaseFeed = (items: FeedItem[]) =>
-  items.forEach((it) => "close" in it.canvas && it.canvas.close());
-
 type Shared = {
-  mode: SceneMode;
-  ring: { url: string; label: string | null }[];
-  // True while something covers the whole screen (the template studio): stop drawing.
+  // True while something covers the whole screen (the studio): stop drawing.
   hold: boolean;
+  // The visitor's own photos for the orbiting polaroids, once they add some.
+  pictures: Array<ImageBitmap | HTMLImageElement>;
 };
 
-let shared: Shared = { mode: "hero", ring: [], hold: false };
+let shared: Shared = { hold: false, pictures: [] };
 const listeners = new Set<() => void>();
 
 export const sceneLive = {
-  feed: [] as FeedItem[],
   pointer: { x: 0, y: 0 },
-  scrollY: 0,
-  spin: { velocity: 0, dragging: false },
   flare: 0,
   reducedMotion: false,
 };
 
-// Phones get a tighter ring so each card stays big enough to recognise.
-export const ringRadius = (count: number, narrow: boolean) =>
-  narrow ? Math.min(2.8, Math.max(2.0, count * 0.2)) : Math.min(4.3, Math.max(2.3, count * 0.3));
-
 export function setScene(patch: Partial<Shared>) {
   shared = { ...shared, ...patch };
-  if (patch.mode && patch.mode !== "processing") releaseFeed(sceneLive.feed.splice(0));
   listeners.forEach((l) => l());
-}
-
-export function pushFeed(item: FeedItem) {
-  sceneLive.feed.push(item);
-  // The funnel shows a sample; never let the queue run away on fast machines.
-  if (sceneLive.feed.length > 24) releaseFeed(sceneLive.feed.splice(0, sceneLive.feed.length - 24));
 }
 
 export function useScene(): Shared {

@@ -77,20 +77,9 @@ export function paperGrain(ctx: CanvasRenderingContext2D, w: number, h: number, 
   for (let i = 0; i < n; i++) ctx.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 1.5, 1 + rnd() * 1.5);
 }
 
-// Where to centre a crop: on the faces if we found any, otherwise slightly above centre.
-export function focusOf(photo: Photo): { x: number; y: number } {
-  const boxes = photo.faces?.boxes ?? [];
-  if (!boxes.length) return { x: 0.5, y: 0.45 };
-  let x = 0;
-  let y = 0;
-  let wsum = 0;
-  for (const b of boxes) {
-    const weight = b.w * b.h;
-    x += (b.x + b.w / 2) * weight;
-    y += (b.y + b.h / 2) * weight;
-    wsum += weight;
-  }
-  return { x: x / wsum, y: y / wsum };
+// Where to centre a crop: slightly above the middle, where faces usually are.
+export function focusOf(_photo: Photo): { x: number; y: number } {
+  return { x: 0.5, y: 0.45 };
 }
 
 export function coverRect(sw: number, sh: number, dw: number, dh: number, focus = { x: 0.5, y: 0.5 }) {

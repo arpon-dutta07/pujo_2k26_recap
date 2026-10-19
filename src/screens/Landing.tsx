@@ -4,11 +4,9 @@ import { Headline } from "../components/Headline";
 import { LockIcon, PhotosIcon } from "../components/Icons";
 import { bnNum } from "../lib/bn";
 import heroPhotos from "../three/hero.generated.json";
-import { Garland } from "./home/Garland";
-import { Hisheb } from "./home/Hisheb";
-import { Moodboards } from "./home/Moodboards";
+import type { Photo } from "../lib/types";
+import { Gallery } from "./home/Gallery";
 import { PrivacyCta } from "./home/PrivacyCta";
-import { Sieve } from "./home/Sieve";
 import { StickerPlay } from "./home/StickerPlay";
 import "./home/home.css";
 
@@ -23,9 +21,22 @@ const PHOTOGRAPHERS = [...new Set(HERO_CREDITS.map((c) => c.author))].map((autho
 const LICENCES = [...new Map(HERO_CREDITS.map((c) => [c.license, c.licenseUrl])).entries()];
 const FROM_COMMONS = HERO_CREDITS.some((c) => c.page.includes("commons.wikimedia.org"));
 
-export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
+export function Landing({
+  photos,
+  adding,
+  onFiles,
+  onRemovePhoto,
+  onStart,
+}: {
+  photos: Photo[];
+  adding: number;
+  onFiles: (files: File[]) => void;
+  onRemovePhoto: (id: string) => void;
+  onStart: (templateId: string) => void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const pick = () => input.current?.click();
+  const toGallery = () => document.getElementById("moodboards")?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <>
@@ -36,8 +47,8 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
           </motion.div>
           <Headline
             lines={[
-              { text: `পুজোর ${bnNum(300)}টা ছবি` },
-              { text: "গ্যালারিতে পড়ে আছে?", accent: true },
+              { text: "পুজোর ছবি দিয়ে" },
+              { text: "মুডবোর্ড বানাও", accent: true },
             ]}
           />
           <motion.p
@@ -46,7 +57,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75, duration: 0.6 }}
           >
-            সব একসাথে দিয়ে দাও। ভালোগুলো বেছে মুডবোর্ডে সাজিয়ে দেব, সঙ্গে একটা পুজোর হিসেব।
+            ছবি দাও, পছন্দের ফ্রেম বাছো, স্টিকার লাগাও। তারপর সোজা <span style={{ whiteSpace: "nowrap" }}>story-তে।</span>
           </motion.p>
           <motion.div
             className="hero-actions"
@@ -61,9 +72,11 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
               whileTap={{ scale: 0.97 }}
             >
               <PhotosIcon />
-              ছবি সিলেক্ট করো
+              ছবি দাও
             </motion.button>
-            <span className="drop-hint">বা এখানে drag করে ছেড়ে দাও</span>
+            <motion.button className="btn btn-ghost" onClick={toGallery} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              আগে মুডবোর্ড দেখো
+            </motion.button>
           </motion.div>
           <motion.div
             className="privacy-line"
@@ -75,7 +88,7 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
             ছবি তোমার ফোনেই থাকে, কোথাও upload হয় না।
           </motion.div>
           <motion.div className="scroll-cue" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>
-            <span /> নিচে দেখো, কীভাবে হয়
+            <span /> {photos.length ? `${bnNum(photos.length)}টা ছবি নেওয়া হয়েছে, নিচে মুডবোর্ড বাছো` : "প্রদীপ ঘিরে ঘুরছে এবারের পুজোর ছবি"}
           </motion.div>
         </div>
         <input
@@ -87,31 +100,23 @@ export function Landing({ onFiles }: { onFiles: (files: File[]) => void }) {
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
             e.target.value = "";
-            if (files.length) onFiles(files);
+            if (files.length) {
+              toGallery();
+              onFiles(files);
+            }
           }}
         />
       </section>
 
       <div className="home">
-        <section className="home-band home-paper home-first">
-          <Garland />
-          <div className="home-wrap">
-            <motion.h2 className="home-title" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              ৩০০ থেকে সেরা ১২
-            </motion.h2>
-            <p className="home-sub">ঝাপসা, একই পোজের দশটা, চোখ বন্ধ, সব বাদ।</p>
-            <Sieve />
-          </div>
-        </section>
-        <Moodboards />
+        <Gallery photos={photos} adding={adding} onPick={pick} onRemove={onRemovePhoto} onStart={onStart} />
         <StickerPlay />
-        <Hisheb />
         <PrivacyCta onPick={pick} />
       </div>
 
       <footer className="footer">
         <span>পুজোর ঝুলি · শারদীয়া ২০২৬</span>
-        <span>Face detection: Google MediaPipe, চলে ফোনেই</span>
+        <span>সব কাজ তোমার ফোনেই হয়</span>
         {PHOTOGRAPHERS.length > 0 && (
           <p className="footer-credits">
             {"এই পাতার পুজো ২০২৬-এর ছবি: "}

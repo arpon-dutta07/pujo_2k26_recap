@@ -3,7 +3,7 @@
 import { focusOf } from "../lib/render/draw";
 import type { Photo } from "../lib/types";
 import { pageSize } from "./render";
-import { templateById, templatesFor } from "./templates";
+import { templateById } from "./templates";
 import { uid, type Fill, type Format, type Page, type Project, type SlotDef, type StickerItem, type TextItem } from "./types";
 
 export const fillFor = (p: Photo): Fill => {
@@ -83,25 +83,17 @@ export const usedPhotoIds = (project: Project) => {
   return ids;
 };
 
-// Biggest empty slot first gets the next best photo; round "thakur" slots
-// prefer photos without faces and the other way round.
+// Empty windows, biggest first, get the photos not used anywhere yet.
 export function autofill(project: Project, pool: Photo[]): Project {
   const used = usedPhotoIds(project);
   const free = pool.filter((p) => !used.has(p.id));
-  const take = (role?: SlotDef["role"]) => {
-    if (!free.length) return undefined;
-    let i = -1;
-    if (role === "thakur") i = free.findIndex((p) => p.kind === "thakur");
-    if (role === "people" || role === "hero") i = free.findIndex((p) => p.kind === "people");
-    return free.splice(i >= 0 ? i : 0, 1)[0];
-  };
   const pages = project.pages.map((page) => {
     const slots = [...slotsOf(page, project.format)].sort((a, b) => b.w * b.h - a.w * a.h);
     const fills = { ...page.fills };
     let changed = false;
     for (const s of slots) {
       if (fills[s.id]) continue;
-      const p = take(s.role);
+      const p = free.shift();
       if (!p) break;
       fills[s.id] = fillFor(p);
       changed = true;
@@ -109,38 +101,6 @@ export function autofill(project: Project, pool: Photo[]): Project {
     return changed ? { ...page, fills } : page;
   });
   return { ...project, pages };
-}
-
-// Image-based template grouping for carousel auto-builder per ANTIGRAVITY.md Task A
-const MAX_PAGES = 8;
-
-// The carousel the site makes on its own: the AI's picks in order, each
-// template used once (আগমনী সুর first). The last page is topped up with the
-// next best photos, or swapped for a template with fewer windows, so no
-// window is left empty.
-export function buildProject(chosen: Photo[], format: Format, spare: Photo[] = []): Project {
-  const live = templatesFor(format);
-  if (!live.length) return { format, pages: [] };
-  const windows = (id: string) => layoutOf(id, format).layout.slots.length;
-  const first = live.find((t) => t.id === "agomoni") ?? live[0];
-  const unused = [first, ...live.filter((t) => t !== first)];
-  const queue = [...chosen];
-  const extra = spare.filter((p) => !chosen.includes(p));
-  const pages: Page[] = [];
-  while (queue.length && unused.length && pages.length < MAX_PAGES) {
-    let t = unused[0];
-    if (queue.length + extra.length < windows(t.id)) {
-      const fits = unused.filter((u) => windows(u.id) <= queue.length + extra.length);
-      if (!fits.length) break;
-      t = fits.reduce((a, b) => (windows(b.id) > windows(a.id) ? b : a));
-    }
-    unused.splice(unused.indexOf(t), 1);
-    const n = windows(t.id);
-    const photos = queue.splice(0, n);
-    while (photos.length < n && extra.length) photos.push(extra.shift()!);
-    pages.push(makePage(t.id, format, photos));
-  }
-  return { format, pages };
 }
 
 // ---------- undo / redo ----------

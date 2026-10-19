@@ -26,11 +26,10 @@ export const PUJO_DAYS: PujoDay[] = [
 export const DAY_STARTS_AT_HOUR = 5;
 
 export const LIMITS = {
-  maxPhotos: 400,
-  defaultPick: 12,
-  pickOptions: [6, 9, 12, 15, 20],
-  // Longest side used for blur / duplicate / face analysis.
-  analysisSize: 640,
+  // Photos added in one go.
+  maxPhotos: 40,
+  // Width the photo is decoded at to learn its shape.
+  decodeSize: 640,
   thumbSize: 360,
 };
 

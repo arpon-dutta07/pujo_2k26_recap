@@ -110,8 +110,6 @@ const PhotoTile = memo(function PhotoTile({
     >
       <img src={photo.thumbUrl} alt="" loading="lazy" decoding="async" draggable={false} />
       {label && <span className="ph-day">{label}</span>}
-      {photo.status === "blurry" && <span className="ph-flag">ঝাপসা</span>}
-      {photo.status === "duplicate" && <span className="ph-flag">একই পোজ</span>}
       {used && (
         <span className="ph-used" aria-label="ব্যবহার হয়েছে">
           <CheckIcon />
@@ -122,9 +120,7 @@ const PhotoTile = memo(function PhotoTile({
 });
 
 export function PhotoPanel({
-  ai,
-  mine,
-  rest,
+  photos,
   used,
   adding,
   hint,
@@ -132,9 +128,7 @@ export function PhotoPanel({
   onFiles,
   onAutofill,
 }: {
-  ai: Photo[];
-  mine: Photo[];
-  rest: Photo[];
+  photos: Photo[];
   used: Set<string>;
   adding: number;
   hint: string;
@@ -143,13 +137,11 @@ export function PhotoPanel({
   onAutofill: () => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const [showAll, setShowAll] = useState(false);
-  const shownRest = showAll ? rest : rest.slice(0, 24);
   return (
     <div className="panel-body">
       <div className="panel-actions">
         <button type="button" className="btn btn-primary btn-small" onClick={() => input.current?.click()}>
-          <PhotosIcon /> ফোন থেকে আরও ছবি
+          <PhotosIcon /> আরও ছবি
         </button>
         <button type="button" className="btn btn-ghost btn-small" onClick={onAutofill}>
           <WandIcon /> Auto-fill
@@ -169,44 +161,18 @@ export function PhotoPanel({
       </div>
       <p className="panel-hint">{hint}</p>
 
-      {(mine.length > 0 || adding > 0) && (
-        <>
-          <h4 className="panel-title">তোমার ছবি</h4>
-          <div className="ph-grid">
-            {mine.map((p) => (
-              <PhotoTile key={p.id} photo={p} used={used.has(p.id)} onPick={onPick} />
-            ))}
-            {Array.from({ length: adding }, (_, i) => (
-              <div key={`a${i}`} className="ph-tile ph-loading" aria-label="ছবি দেখছি">
-                <span />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      <h4 className="panel-title">AI-র বাছাই</h4>
+      <h4 className="panel-title">তোমার ছবি</h4>
+      {photos.length === 0 && adding === 0 && <p className="panel-hint">এখনও কোনো ছবি নেই। "আরও ছবি" টিপে ফোন থেকে দাও।</p>}
       <div className="ph-grid">
-        {ai.map((p) => (
+        {photos.map((p) => (
           <PhotoTile key={p.id} photo={p} used={used.has(p.id)} onPick={onPick} />
         ))}
-      </div>
-
-      {rest.length > 0 && (
-        <>
-          <h4 className="panel-title">বাকি ছবি</h4>
-          <div className="ph-grid">
-            {shownRest.map((p) => (
-              <PhotoTile key={p.id} photo={p} used={used.has(p.id)} onPick={onPick} />
-            ))}
+        {Array.from({ length: adding }, (_, i) => (
+          <div key={`a${i}`} className="ph-tile ph-loading" aria-label="ছবি খুলছি">
+            <span />
           </div>
-          {!showAll && rest.length > shownRest.length && (
-            <button type="button" className="btn btn-ghost btn-small panel-more" onClick={() => setShowAll(true)}>
-              আরও {bnNum(rest.length - shownRest.length)}টা দেখাও
-            </button>
-          )}
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

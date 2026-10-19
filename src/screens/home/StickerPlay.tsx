@@ -29,7 +29,7 @@ export function StickerPlay() {
   const picks = SCATTER.map((s) => ({ ...s, def: stickerById(s.id) })).filter((s) => s.def);
 
   return (
-    <section className="home-band home-cream">
+    <section className="home-band home-red">
       <div className="home-wrap play">
         <div className="play-copy">
           <motion.h2 className="home-title" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -37,7 +37,7 @@ export function StickerPlay() {
           </motion.h2>
           <p className="home-sub">ঢাক, শাঁখ, জবা, মায়ের চোখ, আরও অনেক। মোট {bnNum(STICKERS.length)}টা, যেখানে খুশি বসাও।</p>
           <button
-            className="pill-btn pill-dark"
+            className="pill-btn"
             onClick={() => {
               setRound((r) => r + 1);
               setTouched(false);

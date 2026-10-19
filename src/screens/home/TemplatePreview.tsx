@@ -18,10 +18,13 @@ export const TemplatePreview = memo(function TemplatePreview({
   photos,
   show = true,
   delay = 0,
+  repeat = true,
   className = "",
 }: {
   id: string;
   photos: string[];
+  // true: fewer photos than windows are reused; false: the rest stay empty
+  repeat?: boolean;
   // false hides the photos (they pop in, one window after another, when it turns true)
   show?: boolean;
   delay?: number;
@@ -42,7 +45,7 @@ export const TemplatePreview = memo(function TemplatePreview({
   return (
     <div className={`tp ${className}`}>
       {slots.map((s) => {
-        const src = photos[s.order % photos.length];
+        const src = repeat ? photos[s.order % photos.length] : photos[s.order];
         return (
           <div
             key={s.id}
@@ -57,17 +60,19 @@ export const TemplatePreview = memo(function TemplatePreview({
               clipPath: slotClipCss(s),
             }}
           >
-            <motion.img
-              key={src}
-              src={src}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              initial={{ opacity: 0, scale: 1.18 }}
-              animate={show ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.18 }}
-              transition={{ duration: 0.55, delay: show ? delay + s.order * 0.09 : 0, ease: [0.22, 1, 0.36, 1] }}
-            />
+            {src && (
+              <motion.img
+                key={src}
+                src={src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                initial={{ opacity: 0, scale: 1.18 }}
+                animate={show ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.18 }}
+                transition={{ duration: 0.55, delay: show ? delay + s.order * 0.09 : 0, ease: [0.22, 1, 0.36, 1] }}
+              />
+            )}
           </div>
         );
       })}

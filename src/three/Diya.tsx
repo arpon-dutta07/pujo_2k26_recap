@@ -4,21 +4,16 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { damp, radialTexture } from "./glow";
-import { sceneLive, type SceneMode } from "./store";
+import { sceneLive } from "./store";
 
 // Flame position in the stage's space, read by the photo funnel every frame.
-export const flameAnchor = new THREE.Vector3(0, 0, 1.2);
 
-const POSE: Record<SceneMode, { y: number; scale: number }> = {
-  hero: { y: -1.0, scale: 1.45 },
-  processing: { y: -1.75, scale: 1.25 },
-  results: { y: -0.55, scale: 0.8 },
-};
+const POSE = { y: -1.0, scale: 1.45 };
 
 const TILT = 0.32;
 const FLAME_LOCAL = new THREE.Vector3(0, 0.66, 1.12);
 
-export function Diya({ mode }: { mode: SceneMode }) {
+export function Diya() {
   const group = useRef<THREE.Group>(null);
   const flameOuter = useRef<THREE.Sprite>(null);
   const flameInner = useRef<THREE.Sprite>(null);
@@ -82,12 +77,11 @@ export function Diya({ mode }: { mode: SceneMode }) {
     const g = group.current;
     if (!g) return;
     const t = state.clock.elapsedTime;
-    const pose = POSE[mode];
+    const pose = POSE;
     g.position.y = damp(g.position.y, pose.y, 3, dt);
     const s = damp(g.scale.x, pose.scale, 3, dt);
     g.scale.setScalar(s);
 
-    flameAnchor.copy(FLAME_LOCAL).applyEuler(g.rotation).multiplyScalar(s).add(g.position);
 
     sceneLive.flare = Math.max(0, sceneLive.flare - dt * 2.2);
     const flicker = 1 + 0.07 * Math.sin(t * 13.1) + 0.05 * Math.sin(t * 23.7 + 1.3) + 0.03 * Math.sin(t * 41.9);
@@ -100,7 +94,7 @@ export function Diya({ mode }: { mode: SceneMode }) {
   });
 
   return (
-    <group ref={group} rotation={[TILT, 0, 0]} position={[0, POSE[mode].y, 0]} scale={POSE[mode].scale}>
+    <group ref={group} rotation={[TILT, 0, 0]} position={[0, POSE.y, 0]} scale={POSE.scale}>
       <mesh geometry={parts.bowl} material={parts.clay} />
       <mesh position={[0, 0.405, 0]} rotation={[Math.PI / 2, 0, 0]} material={parts.gold}>
         <torusGeometry args={[0.95, 0.026, 10, 80]} />

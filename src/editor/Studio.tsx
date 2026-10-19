@@ -23,7 +23,7 @@ import {
   TrashIcon,
   UndoIcon,
 } from "../components/Icons";
-import { analyzeExtra } from "../lib/analyze";
+import { importPhoto, isImage } from "../lib/photos";
 import { bnNum } from "../lib/bn";
 import type { Photo } from "../lib/types";
 import { setScene } from "../three/store";
@@ -87,9 +87,7 @@ export function Studio({
   canUndo,
   canRedo,
   photo,
-  ai,
-  mine,
-  rest,
+  photos,
   onAddPhotos,
   startPage = 0,
   onClose,
@@ -99,9 +97,7 @@ export function Studio({
   canUndo: boolean;
   canRedo: boolean;
   photo: (id: string) => Photo | undefined;
-  ai: Photo[];
-  mine: Photo[];
-  rest: Photo[];
+  photos: Photo[]; // everything the visitor has added
   onAddPhotos: (photos: Photo[]) => void;
   startPage?: number;
   onClose: () => void;
@@ -489,13 +485,13 @@ export function Studio({
   };
 
   const addFiles = async (files: File[]) => {
-    const list = files.filter((f) => f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name)).slice(0, 20);
+    const list = files.filter(isImage).slice(0, 20);
     if (!list.length) return;
     setAdding(list.length);
     const made: Photo[] = [];
     for (const f of list) {
       const n = ++extraCount.current;
-      const p = await analyzeExtra(f, `x${n}-${Date.now().toString(36)}`, 10000 + n).catch(() => null);
+      const p = await importPhoto(f, `x${n}-${Date.now().toString(36)}`, 10000 + n).catch(() => null);
       if (p) made.push(p);
       setAdding((a) => Math.max(0, a - 1));
     }
@@ -515,7 +511,7 @@ export function Studio({
   };
 
   const doAutofill = () => {
-    const next = autofill(project, [...mine, ...ai, ...rest.filter((p) => p.status === "ok")]);
+    const next = autofill(project, photos);
     if (next === project || next.pages.every((p, i) => p === project.pages[i])) say("ফাঁকা জায়গা নেই");
     else commit(next);
   };
@@ -571,12 +567,12 @@ export function Studio({
   };
 
   // New template on this page: its photos move over, and any extra windows
-  // fill with photos not used anywhere yet (AI picks first).
+  // fill with photos not used anywhere yet.
   const pickTemplate = (id: string) => {
     const moved = updatePage(project, page.id, (p) => withTemplate(p, id, format));
     const changed = moved.pages.find((p) => p.id === page.id)!;
     const others = { ...moved, pages: moved.pages.filter((p) => p.id !== page.id) };
-    const pool = [...ai, ...mine, ...rest.filter((p) => p.status === "ok")].filter((p) => !usedPhotoIds(others).has(p.id));
+    const pool = photos.filter((p) => !usedPhotoIds(others).has(p.id));
     const filled = autofill({ format, pages: [changed] }, pool).pages[0];
     commit(updatePage(moved, page.id, () => filled));
     setSel(null);
@@ -664,7 +660,7 @@ export function Studio({
       : "ট্যাপ করলে পাতার প্রথম খালি ঘরে বসবে। পাতার কোনো ছবি আগে সিলেক্ট করলে সেটা বদলাবে।";
 
   const photoPanel = (
-    <PhotoPanel ai={ai} mine={mine} rest={rest} used={used} adding={adding} hint={hint} onPick={placePhoto} onFiles={addFiles} onAutofill={doAutofill} />
+    <PhotoPanel photos={photos} used={used} adding={adding} hint={hint} onPick={placePhoto} onFiles={addFiles} onAutofill={doAutofill} />
   );
   const panelFor = (t: Tool) =>
     t === "templates" ? (

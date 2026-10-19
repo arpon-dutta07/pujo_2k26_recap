@@ -34,7 +34,7 @@ export function PrivacyCta({ onPick }: { onPick: () => void }) {
         </motion.ul>
         <motion.button className="btn btn-primary btn-big" onClick={onPick} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}>
           <PhotosIcon />
-          ছবি সিলেক্ট করো
+          ছবি দাও
         </motion.button>
         <p className="promise-note">একবারে {bnNum(LIMITS.maxPhotos)}টা পর্যন্ত ছবি · iPhone আর Android</p>
       </div>

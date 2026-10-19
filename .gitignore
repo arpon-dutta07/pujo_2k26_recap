@@ -2,8 +2,6 @@ node_modules
 dist
 *.local
 .DS_Store
-# copied from node_modules on install
-public/mediapipe/wasm
 # private test photos for local runs
 test-photos
 # moodboard working files: debug sheets, style references, big PNG sources
