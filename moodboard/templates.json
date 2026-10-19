@@ -43,5 +43,17 @@
   "pujor-gaan": {"name": "পুজোর গান", "photos": 2},
   "maayer-arati": {"name": "মায়ের আরতি", "photos": 2},
   "tramer-janla": {"name": "ট্রামের জানলা", "photos": 3},
-  "gramer-pujo": {"name": "গ্রামের পুজো", "photos": 4}
+  "gramer-pujo": {"name": "গ্রামের পুজো", "photos": 4},
+  "padma": {"name": "পদ্ম", "photos": 2},
+  "shiuli-char": {"name": "শিউলি", "photos": 4},
+  "alpona-tin": {"name": "আলপনা", "photos": 3},
+  "khilan": {"name": "খিলান", "photos": 1},
+  "tin-khilan": {"name": "তিন খিলান", "photos": 3},
+  "ghontar-khilan": {"name": "দুই খিলান", "photos": 2},
+  "pujo-dump": {"name": "পুজো ডাম্প", "photos": 4},
+  "pandal-hopping-grid": {"name": "প্যান্ডেল হপিং", "photos": 6},
+  "mosaic": {"name": "মোজাইক", "photos": 5},
+  "film-roll": {"name": "ফিল্ম রোল", "photos": 4},
+  "photo-booth": {"name": "ফটো বুথ", "photos": 3},
+  "dui-roll": {"name": "দুটো রোল", "photos": 6}
 }
