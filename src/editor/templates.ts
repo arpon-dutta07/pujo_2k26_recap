@@ -52,6 +52,18 @@ const VERIFIED = new Set([
   "mosaic__story",
   "film-roll__story",
   "photo-booth__story",
+  "kagojer-khop__story",
+  "char-kon__story",
+  "alponar-ghor__story",
+  "elomelo__story",
+  "laal-kon__story",
+  "maroon-khata__story",
+  "dhaki__story",
+  "laalpar__story",
+  "arati__story",
+  "chhota-din__story",
+  "laal-sari__story",
+  "uthon__story",
 ]);
 
 const entries = (generatedTemplates as unknown as GeneratedTemplateEntry[]).filter((e) => VERIFIED.has(`${e.id}__${e.format}`));

@@ -55,5 +55,17 @@
   "mosaic": {"name": "মোজাইক", "photos": 5},
   "film-roll": {"name": "ফিল্ম রোল", "photos": 4},
   "photo-booth": {"name": "ফটো বুথ", "photos": 3},
-  "dui-roll": {"name": "দুটো রোল", "photos": 6}
+  "dui-roll": {"name": "দুটো রোল", "photos": 6},
+  "kagojer-khop": {"name": "কাগজের খোপ", "photos": 6},
+  "char-kon": {"name": "চার কোণ", "photos": 4},
+  "alponar-ghor": {"name": "আলপনার ঘর", "photos": 5},
+  "elomelo": {"name": "এলোমেলো", "photos": 6},
+  "laal-kon": {"name": "লাল কোণ", "photos": 1},
+  "maroon-khata": {"name": "মেরুন খাতা", "photos": 6},
+  "dhaki": {"name": "ঢাকি", "photos": 2},
+  "laalpar": {"name": "লালপাড়", "photos": 1},
+  "arati": {"name": "আরতি", "photos": 1},
+  "chhota-din": {"name": "ছ'টা দিন", "photos": 6},
+  "laal-sari": {"name": "লাল শাড়ি", "photos": 1},
+  "uthon": {"name": "উঠোন", "photos": 4}
 }

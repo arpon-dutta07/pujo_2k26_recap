@@ -178,7 +178,7 @@ const OPEN = 4; // px: thinner slivers along the edge are paper noise, not objec
 const OCCLUDER_COLOUR = 150; // median colour distance from the paper that marks a real object
 const OCCLUDER_TEXTURE = 0.3; // or this share of its pixels busy (tape print, wood, petals)
 const BUSY_STD = 16; // local brightness spread that counts as busy (stains on old paper stay below it)
-const ROUND_FIT = 0.985; // an arch or oval must cover the window this well, or the outline is used
+const ROUND_FIT = 0.995; // an arch or oval must cover the window this well, or the outline is used (scalloped tops)
 const SNAP_REACH = 80; // px inside a side where the search for its edge starts
 const SNAP_MAX = 30; // px a side may move out
 
