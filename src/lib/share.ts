@@ -1,5 +1,3 @@
-import { zipSync } from "fflate";
-
 export type ExportFile = { name: string; blob: Blob };
 
 const toFiles = (items: ExportFile[]) => items.map((f) => new File([f.blob], f.name, { type: f.blob.type }));
@@ -29,15 +27,23 @@ export function downloadBlob(blob: Blob, name: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  // A phone's download manager can read the file a while after the tap.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export async function downloadZip(items: ExportFile[], zipName: string) {
-  const entries: Record<string, [Uint8Array, { level: 0 }]> = {};
-  for (const f of items) entries[f.name] = [new Uint8Array(await f.blob.arrayBuffer()), { level: 0 }];
-  const zipped = zipSync(entries);
-  downloadBlob(new Blob([zipped as BlobPart], { type: "application/zip" }), zipName);
+// Every picture as its own JPG, one after another. Browsers drop downloads
+// that come too close together, so there is a short gap between them.
+export async function downloadAll(items: ExportFile[], onEach?: (done: number) => void, gapMs = 700) {
+  for (let i = 0; i < items.length; i++) {
+    downloadBlob(items[i].blob, items[i].name);
+    onEach?.(i + 1);
+    if (i < items.length - 1) await new Promise((r) => setTimeout(r, gapMs));
+  }
 }
+
+// Instagram's, Facebook's and other apps' own browsers do not save downloads.
+export const inAppBrowser = () => /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|; wv\)/i.test(navigator.userAgent);

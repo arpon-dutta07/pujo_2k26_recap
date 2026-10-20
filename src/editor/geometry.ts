@@ -19,6 +19,21 @@ export function place(slotW: number, slotH: number, aspect: number, fill: Pick<F
   return { x, y, w, h, cx: (slotW / 2 - x) / w, cy: (slotH / 2 - y) / h };
 }
 
+// ctx.roundRect is missing on older phones (iOS 15, Chrome before 99).
+export function roundRect(ctx: CanvasPath, x: number, y: number, w: number, h: number, r: number) {
+  if (typeof (ctx as CanvasPath & { roundRect?: unknown }).roundRect === "function") {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  const k = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.moveTo(x + k, y);
+  ctx.arcTo(x + w, y, x + w, y + h, k);
+  ctx.arcTo(x + w, y + h, x, y + h, k);
+  ctx.arcTo(x, y + h, x, y, k);
+  ctx.arcTo(x, y, x + w, y, k);
+  ctx.closePath();
+}
+
 // Arch = rectangle with a semicircular top, like a temple doorway.
 export function slotPath(ctx: CanvasPath, s: SlotDef, x = s.x, y = s.y) {
   const { w, h } = s;
@@ -32,7 +47,7 @@ export function slotPath(ctx: CanvasPath, s: SlotDef, x = s.x, y = s.y) {
     ctx.lineTo(x + w, y + h);
     ctx.closePath();
   } else {
-    ctx.roundRect(x, y, w, h, s.radius ?? 0);
+    roundRect(ctx, x, y, w, h, s.radius ?? 0);
   }
 }
 

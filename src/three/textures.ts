@@ -1,5 +1,6 @@
 // Polaroid-style card textures drawn on 2D canvases.
 import * as THREE from "three";
+import { roundRect } from "../editor/geometry";
 import { FONT, alpona, coverRect, ensureFonts, seeded } from "../lib/render/draw";
 import heroPhotos from "./hero.generated.json";
 
@@ -25,7 +26,7 @@ function frame(ctx: CanvasRenderingContext2D) {
   ctx.clearRect(0, 0, CARD_W, CARD_H);
   ctx.fillStyle = "#fffaf0";
   ctx.beginPath();
-  ctx.roundRect(0, 0, CARD_W, CARD_H, 6);
+  roundRect(ctx, 0, 0, CARD_W, CARD_H, 6);
   ctx.fill();
 }
 

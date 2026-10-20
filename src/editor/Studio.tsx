@@ -12,6 +12,7 @@ import {
   CloseIcon,
   CopyIcon,
   DownIcon,
+  DownloadIcon,
   EditIcon,
   FitIcon,
   FlipIcon,
@@ -21,7 +22,6 @@ import {
   PhotosIcon,
   PlusIcon,
   RedoIcon,
-  ShareIcon,
   StickerIcon,
   SwapIcon,
   TextIcon,
@@ -867,7 +867,7 @@ export function Studio({
             <RedoIcon />
           </button>
           <button type="button" className="btn btn-primary btn-small st-share" onClick={() => setExporting(true)}>
-            <ShareIcon /> <span>Share</span>
+            <DownloadIcon /> <span>Download</span>
           </button>
         </div>
       </header>

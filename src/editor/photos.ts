@@ -53,6 +53,9 @@ export function usePhotoSrc(photo: Photo | undefined, sharp: boolean): string | 
   return (sharp && mid.get(photo.id)) || photo.thumbUrl;
 }
 
+// The sharper preview copy, if one was made (the export falls back to it).
+export const midUrlOf = (id: string) => mid.get(id);
+
 export function clearPhotoPreviews() {
   mid.forEach((u) => URL.revokeObjectURL(u));
   mid.clear();

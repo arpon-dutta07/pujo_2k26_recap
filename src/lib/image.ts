@@ -31,6 +31,19 @@ export function drawFit<C extends AnyCanvas = HTMLCanvasElement>(
   return c;
 }
 
+// For the full-size export. The quick string route first (a 1080 px page is
+// only a few MB that way); toBlob() can wait a second or more for the browser
+// to be idle, so it is only the fallback.
+export async function canvasToJpegAsync(c: HTMLCanvasElement, quality = 0.92): Promise<Blob> {
+  try {
+    return canvasToJpeg(c, quality);
+  } catch {
+    const blob = await new Promise<Blob | null>((resolve) => c.toBlob(resolve, "image/jpeg", quality));
+    if (!blob) throw new Error("could not make the JPG");
+    return blob;
+  }
+}
+
 // Synchronous on purpose: toBlob() is deferred to idle time in background tabs
 // (measured 1 s per thumbnail), which stalled the whole analysis.
 export function canvasToJpeg(c: HTMLCanvasElement, quality = 0.82): Blob {

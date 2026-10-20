@@ -91,11 +91,6 @@ export function coverRect(sw: number, sh: number, dw: number, dh: number, focus 
   return { sx: cx, sy: cy, sw: cw, sh: ch };
 }
 
-export function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
-}
-
 // An alpona rosette: lotus petals, a dotted ring and a seed in the middle.
 export function alpona(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, petals = 8) {
   ctx.save();
