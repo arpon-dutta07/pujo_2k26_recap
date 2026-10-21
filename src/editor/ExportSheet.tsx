@@ -19,6 +19,7 @@ import {
   type ExportFile,
 } from "../lib/share";
 import type { Photo } from "../lib/types";
+import { CaptionPick } from "./CaptionPick";
 import { exportProject, type ExportResult } from "./render";
 import type { Project } from "./types";
 
@@ -237,6 +238,7 @@ export function ExportSheet({
               )
             )}
             <p className="note">কোনো একটা আলাদা করে চাইলে সেটায় ট্যাপ করো। প্রথমটাই cover।</p>
+            <CaptionPick onToast={onToast} />
           </>
         )}
       </motion.div>

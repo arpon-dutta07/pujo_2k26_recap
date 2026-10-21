@@ -1382,3 +1382,97 @@
     padding: 0;
   }
 }
+
+/* ---------- a caption to paste, in the export sheet ---------- */
+
+.xc {
+  margin-top: 20px;
+  padding: 16px 18px 14px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--warm-shadow);
+}
+
+.xc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.xc-head b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--sindoor);
+}
+
+.xc-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--kajal);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.xc-next svg {
+  width: 16px;
+  height: 16px;
+}
+
+.xc-body {
+  min-height: 96px;
+}
+
+.studio .xc-text {
+  margin: 10px 0 8px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--kajal);
+}
+
+.studio .xc-credit {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--kajal-2);
+}
+
+.xc-credit b {
+  color: var(--sindoor);
+}
+
+.xc-credit span {
+  color: #8d6a66;
+}
+
+.xc-copy {
+  width: 100%;
+  min-height: 46px;
+  background: var(--paper);
+}
+
+.xc-copy[data-done] {
+  border-color: var(--leaf);
+  background: var(--leaf);
+  color: #fff;
+}
+
+.studio .xc-tip {
+  margin: 10px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: var(--kajal-2);
+}
+
+.xc-tip b {
+  color: var(--sindoor);
+}

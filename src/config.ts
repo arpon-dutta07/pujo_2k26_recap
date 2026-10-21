@@ -2,8 +2,12 @@
 
 export const SITE = {
   name: "পুজোর ঝুলি",
-  // Printed small on every exported image. Change after the Vercel deploy.
+  // The site's address (not printed on the pictures).
   link: "pujor-jhuli.vercel.app",
+  // Every copied caption ends with this Instagram handle, so posts tag the page.
+  instagram: "lyadkhor.coder",
+  // Hashtags under every copied caption. #pujorjhuli finds every post made here.
+  hashtags: "#durgapuja2026 #pujorjhuli #kolkata",
 };
 
 export type DayKey = "panchami" | "shashthi" | "saptami" | "ashtami" | "navami" | "dashami";

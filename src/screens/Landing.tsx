@@ -5,6 +5,7 @@ import { LockIcon, PhotosIcon } from "../components/Icons";
 import { bnNum } from "../lib/bn";
 import heroPhotos from "../three/hero.generated.json";
 import type { Photo } from "../lib/types";
+import { CaptionBoard } from "./home/CaptionBoard";
 import { Gallery } from "./home/Gallery";
 import { PrivacyCta } from "./home/PrivacyCta";
 import { StickerPlay } from "./home/StickerPlay";
@@ -111,6 +112,7 @@ export function Landing({
       <div className="home">
         <Gallery photos={photos} adding={adding} onPick={pick} onRemove={onRemovePhoto} onStart={onStart} />
         <StickerPlay />
+        <CaptionBoard />
         <PrivacyCta onPick={pick} />
       </div>
 
