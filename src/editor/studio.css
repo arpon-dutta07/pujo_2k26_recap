@@ -1308,6 +1308,21 @@
   line-height: 1.5;
 }
 
+.export-tip {
+  margin: 12px 0 0 !important;
+  padding: 10px 14px;
+  border-left: 3px solid var(--marigold);
+  border-radius: 4px 12px 12px 4px;
+  background: rgba(245, 160, 26, 0.12);
+  color: var(--kajal) !important;
+  font-size: 14px !important;
+  line-height: 1.55;
+}
+
+.export-tip b {
+  color: var(--sindoor);
+}
+
 .export-reason {
   margin: 0 0 12px !important;
   font-size: 13px !important;
