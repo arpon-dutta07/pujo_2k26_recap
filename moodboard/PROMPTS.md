@@ -221,3 +221,7 @@ Checks that matter most for this set:
 - **Grids (7, 8, 9):** the gaps between frames must be visible in the debug sheet as separate red boxes. If two frames merge into one box, regenerate with wider gaps.
 - **Arches (4, 5, 6):** the pink area must follow the arch top; the pearls and gold lines stay outside it.
 - **Film strips (10, 11, 12):** the sprocket holes are too small to count as frames, which is fine. The count must still match.
+
+## Part 4: 20 simple moodboards (owner's ChatGPT set, 2026-10-21)
+
+Four each for 1, 2, 3, 4 and 5 photos, in `moodboard/prompts-simple-20.md`. Every prompt there is complete on its own (one paste, one image) and already carries the cutting rules learned on the earlier sets: flat beige windows, straight sharp edges (or a smooth round arch), nothing and no shadow crossing a window, even light with no leaf or sunlight patches (8 boards were set aside for exactly that). Save each keeper as `moodboard/originals/<id>__story.png`; the names and photo counts are already in `moodboard/templates.json`.
